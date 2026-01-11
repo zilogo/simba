@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Bot, Trash2, Database, Loader2 } from "lucide-react";
+import { Bot, Trash2, Database, Loader2, Flag, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -11,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useChat, useCollections } from "@/hooks";
+import { useChat, useCollections, useCreateEval } from "@/hooks";
 import { API_URL } from "@/lib/constants";
+import { ERROR_CATEGORIES } from "@/lib/eval-constants";
 
 // Chat components
 import {
@@ -25,6 +27,11 @@ import {
 
 function PlaygroundContent() {
   const [text, setText] = useState("");
+  const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
+  const [reportComment, setReportComment] = useState("");
+  const [reportErrorCategory, setReportErrorCategory] = useState("");
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [reportSuccessId, setReportSuccessId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -55,6 +62,7 @@ function PlaygroundContent() {
   const {
     messages,
     status,
+    conversationId,
     collection,
     setCollection,
     isThinking: _isThinking,
@@ -87,9 +95,86 @@ function PlaygroundContent() {
     setText("");
   };
 
+  const createEvalMutation = useCreateEval();
+
   const isStreaming = status === "streaming";
   const isSubmitted = status === "submitted";
   const isLoading = isStreaming || isSubmitted;
+
+  const buildTranscript = useCallback(() => {
+    return messages
+      .filter((message) => message.content)
+      .map((message) => {
+        const speaker = message.role === "user" ? "User" : "Assistant";
+        return `${speaker}: ${message.content}`;
+      })
+      .join("\n\n");
+  }, [messages]);
+
+  const findPreviousUserMessage = useCallback(
+    (messageIndex: number) => {
+      for (let index = messageIndex - 1; index >= 0; index -= 1) {
+        const message = messages[index];
+        if (message.role === "user" && message.content) {
+          return message.content;
+        }
+      }
+      return null;
+    },
+    [messages]
+  );
+
+  const handleOpenReport = (messageId: string) => {
+    setReportingMessageId(messageId);
+    setReportComment("");
+    setReportErrorCategory("");
+    setReportError(null);
+    setReportSuccessId(null);
+  };
+
+  const handleCancelReport = () => {
+    setReportingMessageId(null);
+    setReportComment("");
+    setReportErrorCategory("");
+    setReportError(null);
+    setReportSuccessId(null);
+  };
+
+  const handleSubmitReport = async (messageId: string) => {
+    const messageIndex = messages.findIndex((message) => message.id === messageId);
+    if (messageIndex === -1) {
+      setReportError("Message not found");
+      return;
+    }
+
+    const message = messages[messageIndex];
+    const question = findPreviousUserMessage(messageIndex);
+    if (!question) {
+      setReportError("Add a user message before reporting.");
+      return;
+    }
+
+    try {
+      const trimmedComment = reportComment.trim();
+
+      await createEvalMutation.mutateAsync({
+        question,
+        response: message.content,
+        comment: trimmedComment || null,
+        error_category: reportErrorCategory || null,
+        conversation_id: conversationId ?? null,
+        conversation_history: buildTranscript(),
+      });
+      setReportSuccessId(messageId);
+      setReportingMessageId(null);
+      setReportComment("");
+      setReportErrorCategory("");
+      setReportError(null);
+    } catch (error) {
+      console.error("Failed to report message", error);
+      setReportError("Failed to submit report. Try again.");
+    }
+  };
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col">
@@ -155,18 +240,99 @@ function PlaygroundContent() {
           />
         ) : (
           <ChatContainer>
-            {messages.map((message, idx) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                isStreaming={isStreaming && idx === messages.length - 1}
-              />
-            ))}
+            {messages.map((message, idx) => {
+              const isLastStreaming = isStreaming && idx === messages.length - 1;
+              const canReport =
+                message.role === "assistant" &&
+                message.content &&
+                !isLastStreaming;
+
+              return (
+                <div key={message.id} className="space-y-2">
+                  <ChatMessage message={message} isStreaming={isLastStreaming} />
+                  {canReport && (
+                    <div className="pl-11">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenReport(message.id)}
+                        disabled={createEvalMutation.isPending}
+                      >
+                        <Flag className="mr-2 h-4 w-4" />
+                        Report
+                      </Button>
+                      {reportingMessageId === message.id && (
+                        <div className="mt-2 rounded-md border bg-muted/30 p-3">
+                          <div className="flex flex-wrap gap-2">
+                            {ERROR_CATEGORIES.map((category) => {
+                              const isSelected = reportErrorCategory === category.value;
+                              return (
+                                <Button
+                                  key={category.value || "none"}
+                                  type="button"
+                                  size="sm"
+                                  variant={isSelected ? "default" : "outline"}
+                                  onClick={() =>
+                                    setReportErrorCategory(
+                                      isSelected ? "" : category.value
+                                    )
+                                  }
+                                >
+                                  {category.label}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                          <Textarea
+                            value={reportComment}
+                            onChange={(event) => setReportComment(event.target.value)}
+                            placeholder="Add a comment (optional)"
+                            className="mt-3 min-h-[60px]"
+                          />
+                          {reportError && (
+                            <p className="mt-2 text-xs text-destructive">{reportError}</p>
+                          )}
+                          {reportSuccessId === message.id && (
+                            <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                              <CheckCircle2 className="h-4 w-4" />
+                              Report submitted to evals.
+                            </div>
+                          )}
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleSubmitReport(message.id)}
+                              disabled={createEvalMutation.isPending}
+                            >
+                              {createEvalMutation.isPending ? "Reporting..." : "Submit report"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCancelReport}
+                              disabled={createEvalMutation.isPending}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      {reportSuccessId === message.id && reportingMessageId !== message.id && (
+                        <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Report submitted to evals.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {/* Show status when waiting for first content */}
             {isStreaming &&
               messages.length > 0 &&
               !messages[messages.length - 1]?.content &&
-              !messages[messages.length - 1]?.tools?.some(t => t.status === "running") && (
+              !messages[messages.length - 1]?.tools?.some((t) => t.status === "running") && (
                 <div className="flex gap-3 py-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                     <Bot className="h-4 w-4" />

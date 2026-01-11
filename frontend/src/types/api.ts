@@ -210,6 +210,7 @@ export interface EvalItemCreate {
   sources_groundtruth?: string[] | null;
   answer_groundtruth?: string | null;
   comment?: string | null;
+  error_category?: string | null;
   latency_ms?: number | null;
   conversation_id?: string | null;
   conversation_history?: string | null;

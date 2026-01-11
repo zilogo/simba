@@ -63,7 +63,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-simba}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-simba}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-simba_password}
       POSTGRES_DB: ${POSTGRES_DB:-simba}
     volumes:
       - postgres_data:/var/lib/postgresql/data

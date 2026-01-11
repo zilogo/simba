@@ -1,5 +1,6 @@
 """FastAPI application."""
 
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -19,11 +20,26 @@ from simba.core.config import settings
 from simba.models import init_db
 from simba.services.chat_service import shutdown_checkpointer
 
+# Configure logging for application modules
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger("uvicorn")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup
+    logger.info(
+        "Startup config: llm_model=%s embedding_model=%s reranker_model=%s sparse_model=%s parser_backend=%s",
+        settings.llm_model,
+        settings.embedding_model,
+        settings.reranker_model,
+        settings.retrieval_sparse_model,
+        settings.parser_backend,
+    )
     init_db()
     yield
     # Shutdown

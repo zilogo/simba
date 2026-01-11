@@ -2,15 +2,44 @@ import { betterAuth } from "better-auth";
 import { organization } from "better-auth/plugins";
 import { Pool } from "pg";
 
-const databaseUrl =
-  process.env.DATABASE_URL ?? "postgresql://simba:simba@localhost:5432/simba";
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL environment variable is required");
+}
 
 const database = new Pool({
   connectionString: databaseUrl,
 });
 
+function getTrustedOrigins(): string[] {
+  const origins: string[] = [];
+
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    origins.push(process.env.NEXT_PUBLIC_APP_URL);
+  }
+
+  if (process.env.VERCEL_URL) {
+    origins.push(`https://${process.env.VERCEL_URL}`);
+  }
+
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    origins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+
+  // Add the known production URL
+  origins.push("https://simba-frontend-two.vercel.app");
+
+  if (process.env.NODE_ENV !== "production") {
+    origins.push("http://localhost:3000");
+  }
+
+  return origins;
+}
+
 export const auth = betterAuth({
   database,
+  trustedOrigins: getTrustedOrigins(),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,

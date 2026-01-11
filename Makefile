@@ -13,25 +13,10 @@ server:
 # Run Better Auth database migrations
 migrate:
 	@echo "Running Better Auth migrations..."
-	@cd frontend && DATABASE_URL=postgresql://simba:simba@localhost:5432/simba npx @better-auth/cli migrate --yes
-	@echo "Migrations complete!"
+	@cd frontend && DATABASE_URL=postgresql://simba:simba_password@localhost:5432/simba npx @better-auth/cli migrate --yes || true
+	@echo "Starting Celery worker..."
+	@uv run celery -A simba.core.celery_config.celery_app worker --loglevel=info -Q ingestion
 
-# Start all services for local development
-up:
-	@echo "Starting backend services..."
-	@docker compose -f docker/docker-compose.yml up -d
-	@echo "Backend services started!"
-	@echo "  - Server:   localhost:8000"
-	@echo "  - Celery:   running"
-	@echo "  - Redis:    localhost:6379"
-	@echo "  - Postgres: localhost:5432"
-	@echo "  - Qdrant:   localhost:6333"
-	@echo "  - MinIO:    localhost:9000 (console: localhost:9001)"
-	@echo ""
-	@echo "Waiting for Postgres to be ready..."
-	@sleep 5
-	@echo "Running Better Auth migrations..."
-	@cd frontend && DATABASE_URL=postgresql://simba:simba@localhost:5432/simba npx @better-auth/cli migrate --yes || true
 	@echo ""
 	@echo "Starting frontend..."
 	@cd frontend && pnpm dev
@@ -62,7 +47,7 @@ infra services:
 	@echo "Waiting for Postgres to be ready..."
 	@sleep 5
 	@echo "Running Better Auth migrations..."
-	@cd frontend && DATABASE_URL=postgresql://simba:simba@localhost:5432/simba npx @better-auth/cli migrate --yes || true
+	@cd frontend && DATABASE_URL=postgresql://simba:simba_password@localhost:5432/simba npx @better-auth/cli migrate --yes || true
 
 # Start all services with production docker-compose (includes frontend)
 up-prod:

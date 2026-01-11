@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signUp, organization } from "@/lib/auth-client";
+import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,7 +49,7 @@ export default function SignupPage() {
         // Continue anyway - user can create org later
       }
 
-      router.push("/");
+      router.push(ROUTES.HOME);
       router.refresh();
     } catch {
       setError("An unexpected error occurred");

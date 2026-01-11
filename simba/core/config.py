@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:3000"]
 
     # Database
-    database_url: str = "postgresql://simba:simba@localhost:5432/simba"
+    database_url: str = "postgresql://simba:simba_password@localhost:5432/simba"
 
     # LLM (provider-agnostic via init_chat_model)
     # Format: "provider:model" e.g. "openai:gpt-4o-mini", "anthropic:claude-3-opus"
@@ -44,14 +44,16 @@ class Settings(BaseSettings):
     llm_thinking_budget: int = 10000
 
     # Embedding (FastEmbed - local, free, fast)
-    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     embedding_dimensions: int = 384
 
     # Retrieval settings
-    retrieval_min_score: float = 0.7
-    retrieval_limit: int = 5
+    retrieval_min_score: float = 0.3  # Low threshold for multilingual queries
+    retrieval_limit: int = 8
     retrieval_rerank: bool = True
-    retrieval_hybrid: bool = True
+    retrieval_hybrid: bool = (
+        False  # Disabled: SPLADE model is English-only, corrupts French queries
+    )
     retrieval_sparse_model: str = "prithvida/Splade_PP_en_v1"
 
     # Reranker settings

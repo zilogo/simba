@@ -57,6 +57,7 @@ class EvalItemCreate(BaseModel):
     sources_groundtruth: list[str] | None = None
     answer_groundtruth: str | None = None
     comment: str | None = None
+    error_category: str | None = None
     latency_ms: float | None = None
     conversation_id: str | None = None
     conversation_history: str | None = None
@@ -174,6 +175,7 @@ async def create_eval(
         sources_groundtruth=data.sources_groundtruth,
         answer_groundtruth=data.answer_groundtruth,
         comment=data.comment,
+        error_category=data.error_category,
         latency_ms=data.latency_ms,
         conversation_id=data.conversation_id,
         conversation_history=data.conversation_history,

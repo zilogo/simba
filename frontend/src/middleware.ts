@@ -9,17 +9,28 @@ export async function middleware(request: NextRequest) {
   const isAuthPage =
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup");
+  const isPublicPage = request.nextUrl.pathname === "/";
+
+  // Debug logging
+  console.log("[Middleware]", {
+    pathname: request.nextUrl.pathname,
+    hasSessionToken: !!sessionToken,
+    isAuthPage,
+    isPublicPage,
+  });
 
   // If no session and trying to access protected route, redirect to login
-  if (!sessionToken && !isAuthPage) {
+  if (!sessionToken && !isAuthPage && !isPublicPage) {
+    console.log("[Middleware] Redirecting to login - no session");
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // If has session and trying to access auth pages, redirect to home
+  // If has session and trying to access auth pages, redirect to dashboard
   if (sessionToken && isAuthPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    console.log("[Middleware] Redirecting to dashboard - has session on auth page");
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();

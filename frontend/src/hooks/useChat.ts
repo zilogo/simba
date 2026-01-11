@@ -36,6 +36,7 @@ export interface SSEEvent {
   output?: string;
   latency?: LatencyBreakdown; // Tool latency breakdown
   response_latency?: LatencyBreakdown; // Response latency (in done event)
+  sources?: Array<{ document_name: string; content: string; score?: number }>; // RAG sources
   id?: string;
   args?: string;
 }
@@ -154,46 +155,21 @@ export function useChat(options: UseChatOptions = {}) {
   const parseSourcesFromToolOutput = (
     output: string
   ): ChatMessage["sources"] => {
-    // Try to parse RAG tool output to extract sources
+    // Parse RAG tool output to extract sources
+    // Backend format: [Source N: document_name]\ncontent\n\n---\n\n[Source N+1: ...]
     try {
-      // The output is markdown formatted, try to extract document references
       const sources: ChatMessage["sources"] = [];
-      const lines = output.split("\n");
-      let currentSource: {
-        document_name: string;
-        content: string;
-        score?: number;
-      } | null = null;
+      const parts = output.split("\n\n---\n\n");
 
-      for (const line of lines) {
-        // Look for document headers like "### Document: filename.pdf"
-        const docMatch = line.match(/^###?\s*Document:\s*(.+)$/i);
-        if (docMatch) {
-          if (currentSource) {
-            sources.push(currentSource);
-          }
-          currentSource = {
-            document_name: docMatch[1].trim(),
-            content: "",
-          };
-          continue;
+      for (const part of parts) {
+        // Match backend format: [Source N: document_name]\ncontent
+        const match = part.match(/^\[Source \d+: (.+?)\]\n([\s\S]+)$/);
+        if (match) {
+          sources.push({
+            document_name: match[1].trim(),
+            content: match[2].trim(),
+          });
         }
-
-        // Look for score/relevance lines
-        const scoreMatch = line.match(/Score:\s*([\d.]+)/i);
-        if (scoreMatch && currentSource) {
-          currentSource.score = parseFloat(scoreMatch[1]);
-          continue;
-        }
-
-        // Accumulate content
-        if (currentSource && line.trim()) {
-          currentSource.content += (currentSource.content ? "\n" : "") + line;
-        }
-      }
-
-      if (currentSource) {
-        sources.push(currentSource);
       }
 
       return sources.length > 0 ? sources : undefined;
@@ -335,13 +311,24 @@ export function useChat(options: UseChatOptions = {}) {
                     latency: event.latency,
                   };
 
-                  // Parse sources from RAG tool output
-                  if (event.name === "rag" && event.output) {
-                    const parsedSources = parseSourcesFromToolOutput(
-                      event.output
-                    );
-                    if (parsedSources) {
-                      sources = parsedSources;
+                  // Get sources from RAG tool - prefer structured sources from event
+                  if (event.name === "rag") {
+                    console.log("[useChat] RAG tool event:", event);
+                    // Use structured sources from backend if available
+                    if (event.sources && Array.isArray(event.sources)) {
+                      sources = event.sources.map((s: { document_name: string; content: string; score?: number }) => ({
+                        document_name: s.document_name,
+                        content: s.content,
+                        score: s.score,
+                      }));
+                      console.log("[useChat] Using structured sources:", sources);
+                    } else if (event.output) {
+                      // Fallback to parsing output string
+                      const parsedSources = parseSourcesFromToolOutput(event.output);
+                      console.log("[useChat] Parsed sources from output:", parsedSources);
+                      if (parsedSources) {
+                        sources = parsedSources;
+                      }
                     }
                     // Capture retrieval latency from RAG tool
                     if (event.latency) {

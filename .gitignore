@@ -48,3 +48,5 @@ dump.rdb
 
 .db
 node_modules
+.vercel
+.env*.local

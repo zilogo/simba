@@ -18,7 +18,7 @@ export default function Home() {
 
         <div className="flex gap-4">
           <Link
-            href="/documents"
+            href="/login"
             className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             Get Started

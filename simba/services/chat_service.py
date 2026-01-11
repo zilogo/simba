@@ -22,8 +22,9 @@ from simba.services import retrieval_service
 
 logger = logging.getLogger(__name__)
 
-# Context variable to store tool latencies
+# Context variables to store tool data
 _tool_latencies: ContextVar[dict] = ContextVar("tool_latencies", default={})
+_tool_sources: ContextVar[list] = ContextVar("tool_sources", default=[])
 
 # Global connection pool and checkpointer (async)
 _connection_pool: AsyncConnectionPool | None = None
@@ -35,13 +36,30 @@ SYSTEM_PROMPT = """You are Simba, a helpful customer service assistant.
 Your role is to help users by:
 1. Answering questions using information from the knowledge base (RAG)
 2. Being friendly, professional, and concise
-3. Admitting when you don't know something
+3. Responding in the same language the user writes in
 
-When a user asks a question, use the rag tool to search for relevant information
-before answering. Always base your answers on the retrieved context when available.
+## How to search the knowledge base
 
-If the rag tool returns "No relevant information found", let the user know you
-couldn't find specific information but offer to help in other ways.
+When a user asks a question, use the rag tool to search for relevant information.
+
+IMPORTANT - Search strategy:
+- Try multiple search queries with different keywords before concluding information doesn't exist
+- Use key terms and synonyms from the user's question
+- If the first search returns no results, try alternative phrasings or related terms
+- For non-English queries, also try searching with translated keywords
+
+## How to respond
+
+When the rag tool returns context:
+- Base your answer on the retrieved information
+- Cite the source documents when helpful
+- Extract and present the relevant information clearly
+
+ONLY say you couldn't find information if:
+- Multiple different search queries all returned "No relevant information found"
+- You have genuinely exhausted search variations
+
+Never assume information doesn't exist after just one search attempt.
 """
 
 
@@ -58,15 +76,37 @@ def create_rag_tool(collection_name: str):
         Returns:
             Retrieved context from the knowledge base.
         """
-        output, latency = retrieval_service.retrieve_formatted(
+        # Retrieve chunks with latency
+        chunks, latency = retrieval_service.retrieve(
             query=query,
             collection_name=collection_name,
-            limit=5,
+            limit=8,
             return_latency=True,
         )
+
         # Store latency in context var for SSE emission
         _tool_latencies.set({"rag": latency})
-        return output
+
+        # Store sources as structured data for SSE emission
+        sources = [
+            {
+                "document_name": chunk.document_name,
+                "content": chunk.chunk_text[:500],  # Truncate for preview
+                "score": chunk.score,
+            }
+            for chunk in chunks
+        ]
+        _tool_sources.set(sources)
+
+        # Format output for LLM
+        if not chunks:
+            return "No relevant information found in the knowledge base."
+
+        context_parts = []
+        for i, chunk in enumerate(chunks, 1):
+            context_parts.append(f"[Source {i}: {chunk.document_name}]\n{chunk.chunk_text}")
+
+        return "\n\n---\n\n".join(context_parts)
 
     return rag
 
@@ -281,7 +321,7 @@ async def chat_stream(
                 output = event_data.get("output")
                 if hasattr(output, "content"):
                     output = output.content
-                elif not isinstance(output, (str, type(None))):
+                elif not isinstance(output, str | None):
                     output = str(output)
 
                 tool_name = event.get("name")
@@ -295,6 +335,9 @@ async def chat_stream(
                     elapsed = (time.perf_counter() - tool_start_times[tool_name]) * 1000
                     latency = {"total_ms": elapsed}
 
+                # Get sources from context var (set by rag tool)
+                sources = _tool_sources.get() if tool_name == "rag" else None
+
                 # Record when tool finished for response timing
                 tool_end_time = time.perf_counter()
 
@@ -304,6 +347,9 @@ async def chat_stream(
                     "output": output,
                     "latency": latency,
                 }
+                # Include sources if available
+                if sources:
+                    data["sources"] = sources
                 yield f"data: {json.dumps(data)}\n\n"
 
             # Chat model streaming chunks

@@ -22,7 +22,7 @@ def get_reranker():
     from sentence_transformers import CrossEncoder
 
     logger.info(f"Loading reranker model: {settings.reranker_model}")
-    return CrossEncoder(settings.reranker_model)
+    return CrossEncoder(settings.reranker_model, device="mps")
 
 
 def rerank_chunks(
