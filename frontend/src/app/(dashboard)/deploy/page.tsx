@@ -5,32 +5,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
 import { API_URL } from "@/lib/constants";
-import { Copy, Check, Sparkles, MessageSquare, MessageCircle } from "lucide-react";
+import { Copy, Check, Sparkles, MessageSquare, MessageCircle, ChevronDown } from "lucide-react";
+import { useAuth } from "@/providers/auth-provider";
+import { useCollections } from "@/hooks/useCollections";
 
-const INLINE_CHAT_EXAMPLE = `import { SimbaChat } from 'simba-chat';
+const getInlineChatExample = (orgId: string, collection: string) => `// components/inline-chat.tsx
+"use client";
+
+import { SimbaChat } from 'simba-chat';
 import 'simba-chat/styles.css';
 
-function App() {
+export function InlineChat() {
   return (
     <SimbaChat
       apiUrl="${API_URL}"
-      organizationId="your-organization-id"
-      apiKey="your-api-key"
-      collection="default"
+      organizationId="${orgId}"
+      collection="${collection}"
       placeholder="Ask me anything..."
     />
   );
 }`;
 
-const BUBBLE_CHAT_EXAMPLE = `import { SimbaChatBubble } from 'simba-chat';
+const getBubbleChatExample = (orgId: string, collection: string) => `// components/chat-widget.tsx
+"use client";
+
+import { SimbaChatBubble } from 'simba-chat';
 import 'simba-chat/styles.css';
 
-function App() {
+export function ChatWidget() {
   return (
     <SimbaChatBubble
       apiUrl="${API_URL}"
-      organizationId="your-organization-id"
-      apiKey="your-api-key"
+      organizationId="${orgId}"
+      collection="${collection}"
       position="bottom-right"
       defaultOpen={false}
     />
@@ -48,100 +55,48 @@ const THEMING_EXAMPLE = `:root {
   --simba-radius: 0.5rem;
 }`;
 
-const AGENT_PROMPT = `Add a Simba chat widget to my website.
-
-## Package
-Install: npm install simba-chat
+const getAgentPrompt = (orgId: string, collection: string) => `Add a Simba chat widget to my website.
 
 ## Configuration
 - API URL: ${API_URL}
-- Organization ID: (required for multi-tenant access)
-- API Key: (optional, for authenticated access)
-- Collection: "default" (or specify your collection name)
+- Organization ID: ${orgId}
+- Collection: ${collection}
 
-## Integration Options
+## Setup Guidelines
 
-### Option 1: Inline Chat
-\`\`\`tsx
-import { SimbaChat } from 'simba-chat';
-import 'simba-chat/styles.css';
+1. Install: \`npm install simba-chat\`
 
-<SimbaChat
-  apiUrl="${API_URL}"
-  organizationId="your-organization-id"
-  apiKey="your-api-key"
-  collection="default"
-  placeholder="Ask me anything..."
-  onError={(error) => console.error(error)}
-  onMessage={(message) => console.log('New message:', message)}
-/>
-\`\`\`
+2. Import styles: \`import 'simba-chat/styles.css'\`
 
-### Option 2: Floating Bubble
-\`\`\`tsx
-import { SimbaChatBubble } from 'simba-chat';
-import 'simba-chat/styles.css';
+3. Use \`<SimbaChatBubble />\` for floating bubble or \`<SimbaChat />\` for inline embed
 
-<SimbaChatBubble
-  apiUrl="${API_URL}"
-  organizationId="your-organization-id"
-  apiKey="your-api-key"
-  position="bottom-right"
-  defaultOpen={false}
-/>
-\`\`\`
+4. Required props: \`apiUrl\`, \`organizationId\`, \`collection\` (use values from Configuration above)
 
-### Option 3: Custom UI with Hook
-\`\`\`tsx
-import { useSimbaChat } from 'simba-chat';
+5. Optional props: \`position\` ("bottom-left" | "bottom-right"), \`defaultOpen\`, \`placeholder\`
 
-const { messages, status, sendMessage, stop, clear } = useSimbaChat({
-  apiUrl: '${API_URL}',
-  organizationId: 'your-organization-id',
-  apiKey: 'your-api-key',
-  collection: 'default',
-});
-\`\`\`
+6. For custom UI: use the \`useSimbaChat\` hook which returns \`{ messages, status, sendMessage, stop }\`
 
-## Available Props
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| apiUrl | string | Yes | Simba API base URL |
-| organizationId | string | Yes | Organization ID for multi-tenant requests |
-| apiKey | string | No | API key for authentication |
-| collection | string | No | Collection name for RAG queries |
-| placeholder | string | No | Input placeholder text |
-| position | 'bottom-right' \\| 'bottom-left' | No | Bubble position |
-| onError | (error) => void | No | Error callback |
-| onMessage | (message) => void | No | New message callback |
+## Critical for Next.js App Router
+- Create a separate Client Component file with \`"use client"\` directive at the top
+- Import that component into your layout/page (Server Components can import Client Components)
+- Never add \`"use client"\` to layout.tsx directly
 
-## Theming (CSS Variables)
-\`\`\`css
-:root {
-  --simba-primary: #8b5cf6;
-  --simba-primary-foreground: #ffffff;
-  --simba-background: #ffffff;
-  --simba-foreground: #0f172a;
-  --simba-muted: #f1f5f9;
-  --simba-border: #e2e8f0;
-  --simba-radius: 0.5rem;
-}
-\`\`\`
-
-Place the component in your app's root layout or wherever you want the chat to appear. Remember to import the styles CSS file.`;
+## Theming
+Override CSS variables: \`--simba-primary\`, \`--simba-background\`, \`--simba-foreground\`, \`--simba-muted\`, \`--simba-border\`, \`--simba-radius\``;
 
 export default function DeployPage() {
-  const [copiedApiUrl, setCopiedApiUrl] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<string>("default");
+  const [isCollectionOpen, setIsCollectionOpen] = useState(false);
 
-  const copyApiUrl = async () => {
-    await navigator.clipboard.writeText(API_URL);
-    setCopiedApiUrl(true);
-    setTimeout(() => setCopiedApiUrl(false), 2000);
-  };
+  const { activeOrganization } = useAuth();
+  const { data: collectionsData, isLoading: isLoadingCollections } = useCollections();
+
+  const organizationId = activeOrganization?.id || "your-organization-id";
+  const collections = collectionsData?.items ?? [];
 
   const copyPrompt = async () => {
-    await navigator.clipboard.writeText(AGENT_PROMPT);
+    await navigator.clipboard.writeText(getAgentPrompt(organizationId, selectedCollection));
     setCopiedPrompt(true);
     setTimeout(() => setCopiedPrompt(false), 2000);
   };
@@ -155,43 +110,101 @@ export default function DeployPage() {
         </p>
       </div>
 
-      {/* API Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle>API Configuration</CardTitle>
-          <CardDescription>Your API credentials for the chat widget.</CardDescription>
+      {/* Copy Prompt for AI Assistant - TOP */}
+      <Card className="border-primary/50 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Copy Prompt for Claude / Cursor
+          </CardTitle>
+          <CardDescription>
+            Select your collection, then copy this prompt and paste it into your AI coding assistant.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">API URL</label>
-            <div className="flex gap-2">
-              <code className="flex-1 rounded-md border bg-muted px-3 py-2 text-sm font-mono">
-                {API_URL}
-              </code>
-              <Button variant="outline" size="sm" onClick={copyApiUrl}>
-                {copiedApiUrl ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Copy className="h-4 w-4" />
+          {/* Inline config */}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Collection:</span>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsCollectionOpen(!isCollectionOpen)}
+                  className="flex h-8 items-center gap-2 rounded-md border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <span>{selectedCollection}</span>
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                </button>
+                {isCollectionOpen && (
+                  <div className="absolute z-50 mt-1 min-w-[200px] rounded-md border bg-background shadow-lg">
+                    <div className="max-h-60 overflow-auto p-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCollection("default");
+                          setIsCollectionOpen(false);
+                        }}
+                        className={`flex w-full items-center rounded px-3 py-2 text-sm hover:bg-muted ${
+                          selectedCollection === "default" ? "bg-muted" : ""
+                        }`}
+                      >
+                        default
+                      </button>
+                      {isLoadingCollections ? (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">Loading...</div>
+                      ) : (
+                        collections.map((col) => (
+                          <button
+                            key={col.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCollection(col.name);
+                              setIsCollectionOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between rounded px-3 py-2 text-sm hover:bg-muted ${
+                              selectedCollection === col.name ? "bg-muted" : ""
+                            }`}
+                          >
+                            <span>{col.name}</span>
+                            <span className="text-xs text-muted-foreground">{col.document_count} docs</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
-              </Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Org:</span>
+              <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">{organizationId}</code>
             </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">API Key (Optional)</label>
-            <div className="flex gap-2">
-              <input
-                type="password"
-                value="sk-xxxxxxxxxxxxxxxx"
-                readOnly
-                className="flex-1 rounded-md border bg-muted px-3 py-2 text-sm"
-              />
-              <Button variant="outline">Regenerate</Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Use this key to authenticate API requests from your widget.
-            </p>
-          </div>
+
+          {/* Copy button */}
+          <Button onClick={copyPrompt} className="w-full" size="lg">
+            {copiedPrompt ? (
+              <>
+                <Check className="mr-2 h-5 w-5" />
+                Copied to Clipboard!
+              </>
+            ) : (
+              <>
+                <Copy className="mr-2 h-5 w-5" />
+                Copy Integration Prompt
+              </>
+            )}
+          </Button>
+
+          {/* Preview */}
+          <details className="group">
+            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+              Preview prompt
+            </summary>
+            <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-muted p-4 text-xs font-mono whitespace-pre-wrap">
+              {getAgentPrompt(organizationId, selectedCollection)}
+            </pre>
+          </details>
         </CardContent>
       </Card>
 
@@ -222,7 +235,7 @@ export default function DeployPage() {
             <p className="text-sm text-muted-foreground">
               Embed the chat directly in your page layout.
             </p>
-            <CodeBlock code={INLINE_CHAT_EXAMPLE} language="tsx" />
+            <CodeBlock code={getInlineChatExample(organizationId, selectedCollection)} language="tsx" />
           </div>
 
           {/* Floating Bubble */}
@@ -234,7 +247,7 @@ export default function DeployPage() {
             <p className="text-sm text-muted-foreground">
               Add a floating chat bubble to the corner of your site.
             </p>
-            <CodeBlock code={BUBBLE_CHAT_EXAMPLE} language="tsx" />
+            <CodeBlock code={getBubbleChatExample(organizationId, selectedCollection)} language="tsx" />
           </div>
         </CardContent>
       </Card>
@@ -250,37 +263,6 @@ export default function DeployPage() {
         </CardContent>
       </Card>
 
-      {/* Coding Agent Prompt */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            Coding Agent Prompt
-          </CardTitle>
-          <CardDescription>
-            Copy this prompt and paste it into Claude, Cursor, or your favorite AI coding assistant.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <pre className="max-h-64 overflow-auto rounded-md bg-muted p-4 text-xs font-mono whitespace-pre-wrap">
-              {AGENT_PROMPT}
-            </pre>
-            <Button
-              variant="outline"
-              size="sm"
-              className="absolute top-2 right-2"
-              onClick={copyPrompt}
-            >
-              {copiedPrompt ? (
-                <Check className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
