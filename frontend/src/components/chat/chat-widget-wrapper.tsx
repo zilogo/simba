@@ -1,8 +1,10 @@
 "use client";
 
+"use client";
+
 import dynamic from "next/dynamic";
 import "simba-chat/styles.css";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { getActiveOrgId } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -14,12 +16,22 @@ const SimbaChatBubble = dynamic(
 export function ChatWidgetWrapper() {
   const showWidget = process.env.NEXT_PUBLIC_SHOW_CHAT_WIDGET === "true";
   const { activeOrganization } = useAuth();
-  const organizationId = useMemo(
-    () => activeOrganization?.id || getActiveOrgId() || undefined,
-    [activeOrganization?.id]
-  );
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!showWidget) {
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    setOrganizationId(activeOrganization?.id || getActiveOrgId() || null);
+  }, [activeOrganization?.id, isMounted]);
+
+  if (!showWidget || !isMounted || !organizationId) {
     return null;
   }
 

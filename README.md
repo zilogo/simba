@@ -26,6 +26,12 @@
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/zeroualihamza?style=social)](https://x.com/zerou_hamza)
 
+## See how easy it is to integrate Simba into your website
+
+<p align="center">
+<img src="/assets/simba-integration.gif" alt="Simba Integration Demo" width="800"/>
+</p>
+
 ## What is Simba?
 
 Simba is an open-source customer service assistant built for teams who need **full control** over their AI. Unlike black-box solutions, Simba is designed from the ground up around **evaluation** and **customization**, so you can measure performance, iterate fast, and tailor the assistant to your exact needs.
@@ -198,5 +204,3 @@ We welcome contributions! Fork the repo, create a branch, and submit a PR.
 
 - Open an issue on [GitHub](https://github.com/GitHamza0206/simba/issues)
 - Contact: [zeroualihamza0206@gmail.com](mailto:zeroualihamza0206@gmail.com)
-
-

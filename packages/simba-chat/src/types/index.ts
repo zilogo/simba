@@ -33,7 +33,7 @@ export type ChatStatus = "ready" | "submitted" | "streaming" | "error";
 export interface UseSimbaChatOptions {
   apiUrl: string;
   apiKey?: string;
-  organizationId?: string;
+  organizationId: string;
   collection?: string;
   onError?: (error: Error) => void;
   onMessage?: (message: ChatMessage) => void;
@@ -50,7 +50,7 @@ export interface UseSimbaChatReturn {
 export interface SimbaChatProps {
   apiUrl: string;
   apiKey?: string;
-  organizationId?: string;
+  organizationId: string;
   collection?: string;
   placeholder?: string;
   className?: string;

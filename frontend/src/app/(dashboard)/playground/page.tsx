@@ -2,9 +2,18 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Bot, Trash2, Database, Loader2, Flag, CheckCircle2 } from "lucide-react";
+import {
+  Bot,
+  Trash2,
+  Database,
+  Loader2,
+  Flag,
+  CheckCircle2,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -15,6 +24,7 @@ import {
 import { useChat, useCollections, useCreateEval } from "@/hooks";
 import { API_URL } from "@/lib/constants";
 import { ERROR_CATEGORIES } from "@/lib/eval-constants";
+import { getSourceIcon, type Source } from "@/components/chat/chat-sources";
 
 // Chat components
 import {
@@ -32,6 +42,10 @@ function PlaygroundContent() {
   const [reportErrorCategory, setReportErrorCategory] = useState("");
   const [reportError, setReportError] = useState<string | null>(null);
   const [reportSuccessId, setReportSuccessId] = useState<string | null>(null);
+  const [sourcePanel, setSourcePanel] = useState<{
+    messageId: string;
+    sources: Source[];
+  } | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -100,6 +114,26 @@ function PlaygroundContent() {
   const isStreaming = status === "streaming";
   const isSubmitted = status === "submitted";
   const isLoading = isStreaming || isSubmitted;
+
+  const handleSourcesOpen = (messageId: string, sources: Source[]) => {
+    setSourcePanel({ messageId, sources });
+  };
+
+  const handleSourcesClose = () => {
+    setSourcePanel(null);
+  };
+
+  useEffect(() => {
+    if (!sourcePanel) return;
+    const message = messages.find((item) => item.id === sourcePanel.messageId);
+    if (!message) {
+      setSourcePanel(null);
+      return;
+    }
+    if (message.sources && message.sources !== sourcePanel.sources) {
+      setSourcePanel({ messageId: message.id, sources: message.sources });
+    }
+  }, [messages, sourcePanel]);
 
   const buildTranscript = useCallback(() => {
     return messages
@@ -224,126 +258,193 @@ function PlaygroundContent() {
 
       {/* Chat Container */}
       <div className="flex flex-1 flex-col overflow-hidden rounded-lg border bg-background">
-        {isLoadingHistory ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : messages.length === 0 ? (
-          <ChatEmptyState
-            title="Start a conversation"
-            description={
-              collection
-                ? `Ask questions about documents in the "${collection}" collection.`
-                : "Select a collection to start chatting."
-            }
-            icon={<Bot className="h-8 w-8" />}
-          />
-        ) : (
-          <ChatContainer>
-            {messages.map((message, idx) => {
-              const isLastStreaming = isStreaming && idx === messages.length - 1;
-              const canReport =
-                message.role === "assistant" &&
-                message.content &&
-                !isLastStreaming;
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {isLoadingHistory ? (
+              <div className="flex flex-1 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : messages.length === 0 ? (
+              <ChatEmptyState
+                title="Start a conversation"
+                description={
+                  collection
+                    ? `Ask questions about documents in the "${collection}" collection.`
+                    : "Select a collection to start chatting."
+                }
+                icon={<Bot className="h-8 w-8" />}
+              />
+            ) : (
+              <ChatContainer>
+                {messages.map((message, idx) => {
+                  const isLastStreaming = isStreaming && idx === messages.length - 1;
+                  const canReport =
+                    message.role === "assistant" &&
+                    message.content &&
+                    !isLastStreaming;
 
-              return (
-                <div key={message.id} className="space-y-2">
-                  <ChatMessage message={message} isStreaming={isLastStreaming} />
-                  {canReport && (
-                    <div className="pl-11">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenReport(message.id)}
-                        disabled={createEvalMutation.isPending}
-                      >
-                        <Flag className="mr-2 h-4 w-4" />
-                        Report
-                      </Button>
-                      {reportingMessageId === message.id && (
-                        <div className="mt-2 rounded-md border bg-muted/30 p-3">
-                          <div className="flex flex-wrap gap-2">
-                            {ERROR_CATEGORIES.map((category) => {
-                              const isSelected = reportErrorCategory === category.value;
-                              return (
+                  return (
+                    <div key={message.id} className="space-y-2">
+                      <ChatMessage
+                        message={message}
+                        isStreaming={isLastStreaming}
+                        onSourcesOpen={handleSourcesOpen}
+                        isSourcesOpen={sourcePanel?.messageId === message.id}
+                      />
+                      {canReport && (
+                        <div className="pl-11">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenReport(message.id)}
+                            disabled={createEvalMutation.isPending}
+                          >
+                            <Flag className="mr-2 h-4 w-4" />
+                            Report
+                          </Button>
+                          {reportingMessageId === message.id && (
+                            <div className="mt-2 rounded-md border bg-muted/30 p-3">
+                              <div className="flex flex-wrap gap-2">
+                                {ERROR_CATEGORIES.map((category) => {
+                                  const isSelected = reportErrorCategory === category.value;
+                                  return (
+                                    <Button
+                                      key={category.value || "none"}
+                                      type="button"
+                                      size="sm"
+                                      variant={isSelected ? "default" : "outline"}
+                                      onClick={() =>
+                                        setReportErrorCategory(
+                                          isSelected ? "" : category.value
+                                        )
+                                      }
+                                    >
+                                      {category.label}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                              <Textarea
+                                value={reportComment}
+                                onChange={(event) => setReportComment(event.target.value)}
+                                placeholder="Add a comment (optional)"
+                                className="mt-3 min-h-[60px]"
+                              />
+                              {reportError && (
+                                <p className="mt-2 text-xs text-destructive">{reportError}</p>
+                              )}
+                              {reportSuccessId === message.id && (
+                                <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  Report submitted to evals.
+                                </div>
+                              )}
+                              <div className="mt-3 flex gap-2">
                                 <Button
-                                  key={category.value || "none"}
-                                  type="button"
                                   size="sm"
-                                  variant={isSelected ? "default" : "outline"}
-                                  onClick={() =>
-                                    setReportErrorCategory(
-                                      isSelected ? "" : category.value
-                                    )
-                                  }
+                                  onClick={() => handleSubmitReport(message.id)}
+                                  disabled={createEvalMutation.isPending}
                                 >
-                                  {category.label}
+                                  {createEvalMutation.isPending
+                                    ? "Reporting..."
+                                    : "Submit report"}
                                 </Button>
-                              );
-                            })}
-                          </div>
-                          <Textarea
-                            value={reportComment}
-                            onChange={(event) => setReportComment(event.target.value)}
-                            placeholder="Add a comment (optional)"
-                            className="mt-3 min-h-[60px]"
-                          />
-                          {reportError && (
-                            <p className="mt-2 text-xs text-destructive">{reportError}</p>
-                          )}
-                          {reportSuccessId === message.id && (
-                            <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                              <CheckCircle2 className="h-4 w-4" />
-                              Report submitted to evals.
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={handleCancelReport}
+                                  disabled={createEvalMutation.isPending}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
                             </div>
                           )}
-                          <div className="mt-3 flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleSubmitReport(message.id)}
-                              disabled={createEvalMutation.isPending}
-                            >
-                              {createEvalMutation.isPending ? "Reporting..." : "Submit report"}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleCancelReport}
-                              disabled={createEvalMutation.isPending}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                      {reportSuccessId === message.id && reportingMessageId !== message.id && (
-                        <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Report submitted to evals.
+                          {reportSuccessId === message.id &&
+                            reportingMessageId !== message.id && (
+                              <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                                <CheckCircle2 className="h-4 w-4" />
+                                Report submitted to evals.
+                              </div>
+                            )}
                         </div>
                       )}
                     </div>
+                  );
+                })}
+                {/* Show status when waiting for first content */}
+                {isStreaming &&
+                  messages.length > 0 &&
+                  !messages[messages.length - 1]?.content &&
+                  !messages[messages.length - 1]?.tools?.some((t) => t.status === "running") && (
+                    <div className="flex gap-3 py-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                        <Bot className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <ChatStatus isThinking />
+                      </div>
+                    </div>
                   )}
-                </div>
-              );
-            })}
-            {/* Show status when waiting for first content */}
-            {isStreaming &&
-              messages.length > 0 &&
-              !messages[messages.length - 1]?.content &&
-              !messages[messages.length - 1]?.tools?.some((t) => t.status === "running") && (
-                <div className="flex gap-3 py-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                    <Bot className="h-4 w-4" />
+              </ChatContainer>
+            )}
+          </div>
+
+          {sourcePanel && (
+            <div className="w-80 border-l bg-muted/20">
+              <div className="flex h-full flex-col">
+                <div className="flex items-center justify-between border-b px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold">Sources</p>
+                    <p className="text-xs text-muted-foreground">
+                      {sourcePanel.sources.length} sources
+                    </p>
                   </div>
-                  <div className="flex-1">
-                    <ChatStatus isThinking />
-                  </div>
+                  <Button variant="ghost" size="icon" onClick={handleSourcesClose}>
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-              )}
-          </ChatContainer>
-        )}
+                <ScrollArea className="flex-1">
+                  <div className="space-y-3 p-4">
+                    {sourcePanel.sources.map((source, idx) => {
+                      const Icon = getSourceIcon(source.document_name);
+                      return (
+                        <div
+                          key={`${source.document_name}-${idx}`}
+                          className="rounded-lg border bg-background p-3 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {source.document_name}
+                                </p>
+                                {source.score !== undefined && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Relevance {Math.round(source.score * 100)}%
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-xs text-muted-foreground">#{idx + 1}</span>
+                          </div>
+                          {source.content && (
+                            <p className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
+                              {source.content}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Input */}
         <div className="border-t p-4">

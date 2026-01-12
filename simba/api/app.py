@@ -15,6 +15,7 @@ from simba.api.routes import (
     evals,
     health,
     metrics,
+    organizations,
 )
 from simba.core.config import settings
 from simba.models import init_db
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
     # Routes
     app.include_router(health.router, prefix=settings.api_prefix, tags=["health"])
     app.include_router(metrics.router, prefix=settings.api_prefix, tags=["metrics"])
+    app.include_router(organizations.router, prefix=settings.api_prefix, tags=["organizations"])
     app.include_router(collections.router, prefix=settings.api_prefix, tags=["collections"])
     app.include_router(documents.router, prefix=settings.api_prefix, tags=["documents"])
     app.include_router(conversations.router, prefix=settings.api_prefix, tags=["conversations"])

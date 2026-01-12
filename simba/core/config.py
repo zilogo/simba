@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # API
     api_prefix: str = "/api/v1"
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:3001"]
 
     # Database
     database_url: str = "postgresql://simba:simba_password@localhost:5432/simba"
@@ -38,7 +38,8 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.1
 
     # LLM Reasoning (for models that support it: o1, o3, claude with thinking, etc.)
-    # Values: None (disabled), "low", "medium", "high"
+    # Values: None (disabled), "low", "medium", "high", "none", "default"
+    # Groq only accepts "none" or "default" (others map to "default")
     llm_reasoning_effort: str | None = None
     # Anthropic thinking budget (only used when provider is anthropic and reasoning is enabled)
     llm_thinking_budget: int = 10000

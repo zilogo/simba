@@ -50,10 +50,15 @@
     "ai",
     "chatbot"
   ],
-  "author": "",
+  "author": "Simba Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/simba"
-  }
+    "url": "https://github.com/githamza0206/simba.git",
+    "directory": "packages/simba-chat"
+  },
+  "bugs": {
+    "url": "https://github.com/githamza0206/simba/issues"
+  },
+  "homepage": "https://github.com/githamza0206/simba/tree/main/packages/simba-chat#readme"
 }

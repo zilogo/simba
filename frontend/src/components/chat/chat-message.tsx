@@ -14,13 +14,21 @@ interface ChatMessageProps {
   message: ChatMessageType;
   isStreaming?: boolean;
   className?: string;
+  onSourcesOpen?: (messageId: string, sources: NonNullable<ChatMessageType["sources"]>) => void;
+  isSourcesOpen?: boolean;
 }
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export function ChatMessage({ message, isStreaming, className }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  isStreaming,
+  className,
+  onSourcesOpen,
+  isSourcesOpen,
+}: ChatMessageProps) {
   const isUser = message.role === "user";
   const hasRunningTool = message.tools?.some((t) => t.status === "running");
   const showStatus = isStreaming && hasRunningTool;
@@ -94,7 +102,16 @@ export function ChatMessage({ message, isStreaming, className }: ChatMessageProp
 
         {/* Sources as citations (AFTER content) */}
         {!isUser && message.sources && message.sources.length > 0 && (
-          <ChatSources sources={message.sources} />
+          <ChatSources
+            sources={message.sources}
+            className="pt-1"
+            onOpen={
+              onSourcesOpen
+                ? () => onSourcesOpen(message.id, message.sources ?? [])
+                : undefined
+            }
+            isActive={isSourcesOpen}
+          />
         )}
 
         {/* RAG Context (collapsible full context) */}

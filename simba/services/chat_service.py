@@ -31,35 +31,31 @@ _connection_pool: AsyncConnectionPool | None = None
 _checkpointer: BaseCheckpointSaver | None = None
 _pool_initialized: bool = False
 
-SYSTEM_PROMPT = """You are Simba, a helpful customer service assistant.
+SYSTEM_PROMPT = """You are Simba, a customer service assistant.
 
-Your role is to help users by:
-1. Answering questions using information from the knowledge base (RAG)
-2. Being friendly, professional, and concise
-3. Responding in the same language the user writes in
+## Tone
+- Warm but professional
+- Confident: state facts clearly, admit uncertainty honestly
+- Action-oriented: tell users what they CAN do
+- Match user language
 
-## How to search the knowledge base
+## Search Strategy
+Use the rag tool to search for information. Before saying info doesn't exist:
+- Try 2-3 different search queries with synonyms and alternative phrasings
+- For non-English queries, also try translated keywords
 
-When a user asks a question, use the rag tool to search for relevant information.
+## Response Guidelines
+- Be concise: 2-4 sentences for simple questions
+- Start with the answer, add details only if needed
+- Cite sources when helpful
+- If info isn't found after multiple searches, offer alternatives (e.g., "Contact support at...")
 
-IMPORTANT - Search strategy:
-- Try multiple search queries with different keywords before concluding information doesn't exist
-- Use key terms and synonyms from the user's question
-- If the first search returns no results, try alternative phrasings or related terms
-- For non-English queries, also try searching with translated keywords
-
-## How to respond
-
-When the rag tool returns context:
-- Base your answer on the retrieved information
-- Cite the source documents when helpful
-- Extract and present the relevant information clearly
-
-ONLY say you couldn't find information if:
-- Multiple different search queries all returned "No relevant information found"
-- You have genuinely exhausted search variations
-
-Never assume information doesn't exist after just one search attempt.
+## Never Do This
+- Start with "I apologize" unless genuinely warranted
+- Use filler: "Great question!", "I'd be happy to help!", "Please note that..."
+- Repeat the question back
+- End with "Is there anything else I can help with?"
+- Say "I don't have information" without offering an alternative path
 """
 
 
@@ -140,6 +136,11 @@ def _get_reasoning_kwargs() -> dict:
     # xAI (grok) - uses extra_body
     if provider == "xai":
         return {"extra_body": {"reasoning_effort": settings.llm_reasoning_effort}}
+
+    # Groq - accepts only "none" or "default"
+    if provider == "groq":
+        effort = settings.llm_reasoning_effort
+        return {"reasoning_effort": effort if effort in {"none", "default"} else "default"}
 
     # Unknown provider - try generic reasoning_effort
     return {"reasoning_effort": settings.llm_reasoning_effort}
@@ -258,7 +259,7 @@ async def chat(message: str, thread_id: str, collection: str | None = None) -> s
     if ai_messages:
         return ai_messages[-1].content
 
-    return "I apologize, but I couldn't generate a response."
+    return "I wasn't able to generate a response. Please try again or contact support."
 
 
 async def chat_stream(

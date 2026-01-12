@@ -48,13 +48,11 @@ function useSimbaChat(options) {
       setMessages((prev) => [...prev, assistantMessage]);
       try {
         const headers = {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "X-Organization-Id": organizationId
         };
         if (apiKey) {
           headers.Authorization = `Bearer ${apiKey}`;
-        }
-        if (organizationId) {
-          headers["X-Organization-Id"] = organizationId;
         }
         const response = await fetch(
           `${apiUrl}/api/v1/conversations/chat/stream`,

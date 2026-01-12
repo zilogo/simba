@@ -57,12 +57,10 @@ export function useSimbaChat(options: UseSimbaChatOptions): UseSimbaChatReturn {
       try {
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
+          "X-Organization-Id": organizationId,
         };
         if (apiKey) {
           headers.Authorization = `Bearer ${apiKey}`;
-        }
-        if (organizationId) {
-          headers["X-Organization-Id"] = organizationId;
         }
 
         const response = await fetch(

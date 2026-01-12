@@ -375,14 +375,17 @@ async def run_eval(
 
         llm = init_chat_model(model=settings.llm_model, temperature=0)
 
-        prompt = f"""You are a helpful customer service assistant. Answer the following question based on the provided context.
+        prompt = f"""You are a customer service assistant. Answer based on the context below.
 
 Context:
 {context}
 
 Question: {eval_item.question}
 
-Provide a helpful and accurate response based on the context. If the context doesn't contain relevant information, say so."""
+Guidelines:
+- Be concise (2-4 sentences for simple questions)
+- Start with the answer directly
+- If info isn't in the context, say so briefly and suggest contacting support"""
 
         import time
 
@@ -496,14 +499,17 @@ async def run_all_evals(
 
             llm = init_chat_model(model=settings.llm_model, temperature=0)
 
-            prompt = f"""You are a helpful customer service assistant. Answer the following question based on the provided context.
+            prompt = f"""You are a customer service assistant. Answer based on the context below.
 
 Context:
 {context}
 
 Question: {eval_item.question}
 
-Provide a helpful and accurate response based on the context. If the context doesn't contain relevant information, say so."""
+Guidelines:
+- Be concise (2-4 sentences for simple questions)
+- Start with the answer directly
+- If info isn't in the context, say so briefly and suggest contacting support"""
 
             import time
 

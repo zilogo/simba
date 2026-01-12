@@ -124,7 +124,7 @@ def retrieve(
         logger.info(f"[Retrieval] Raw results from Qdrant: {len(results)}")
         for i, r in enumerate(results[:5]):
             logger.info(
-                f"[Retrieval]   [{i+1}] score={r['score']:.4f}, doc={r['payload'].get('document_name', 'unknown')}"
+                f"[Retrieval]   [{i + 1}] score={r['score']:.4f}, doc={r['payload'].get('document_name', 'unknown')}"
             )
 
         # Filter by minimum score and convert to RetrievedChunk objects
