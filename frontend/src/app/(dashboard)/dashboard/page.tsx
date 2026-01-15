@@ -1,39 +1,44 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, MessageSquare, TrendingUp, Users } from "lucide-react";
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.title")}</h1>
         <p className="text-muted-foreground">
-          Overview of your knowledge base and conversations.
+          {t("dashboard.description")}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Total Documents"
+          title={t("dashboard.totalDocuments")}
           value="24"
-          description="+2 from last week"
+          description={t("dashboard.fromLastWeek", { count: 2 })}
           icon={FileText}
         />
         <StatsCard
-          title="Conversations"
+          title={t("dashboard.conversations")}
           value="1,234"
-          description="+180 today"
+          description={t("dashboard.today", { count: 180 })}
           icon={MessageSquare}
         />
         <StatsCard
-          title="Resolution Rate"
+          title={t("dashboard.resolutionRate")}
           value="89%"
-          description="+2.5% from last month"
+          description={t("dashboard.fromLastMonth", { percent: 2.5 })}
           icon={TrendingUp}
         />
         <StatsCard
-          title="Active Users"
+          title={t("dashboard.activeUsers")}
           value="573"
-          description="Currently online"
+          description={t("dashboard.currentlyOnline")}
           icon={Users}
         />
       </div>
@@ -41,21 +46,21 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Conversations</CardTitle>
-            <CardDescription>Latest customer inquiries</CardDescription>
+            <CardTitle>{t("dashboard.recentConversations")}</CardTitle>
+            <CardDescription>{t("dashboard.latestInquiries")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No conversations yet.</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.noConversationsYet")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Document Status</CardTitle>
-            <CardDescription>Knowledge base overview</CardDescription>
+            <CardTitle>{t("dashboard.documentStatus")}</CardTitle>
+            <CardDescription>{t("dashboard.knowledgeBaseOverview")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No documents uploaded yet.</p>
+            <p className="text-sm text-muted-foreground">{t("dashboard.noDocumentsYet")}</p>
           </CardContent>
         </Card>
       </div>

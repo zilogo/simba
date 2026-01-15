@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { signUp, organization } from "@/lib/auth-client";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { Loader2 } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +35,7 @@ export default function SignupPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message || "Failed to create account");
+        setError(signUpError.message || t("auth.unexpectedError"));
         setIsLoading(false);
         return;
       }
@@ -52,7 +54,7 @@ export default function SignupPage() {
       router.push(ROUTES.HOME);
       router.refresh();
     } catch {
-      setError("An unexpected error occurred");
+      setError(t("auth.unexpectedError"));
       setIsLoading(false);
     }
   };
@@ -60,8 +62,8 @@ export default function SignupPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create an account</CardTitle>
-        <CardDescription>Get started with Simba</CardDescription>
+        <CardTitle className="text-2xl">{t("auth.createAccount")}</CardTitle>
+        <CardDescription>{t("auth.signUpDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,11 +72,11 @@ export default function SignupPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{t("auth.name")}</Label>
             <Input
               id="name"
               type="text"
-              placeholder="Your name"
+              placeholder={t("auth.namePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -83,11 +85,11 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -96,11 +98,11 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Create a password (min 8 characters)"
+              placeholder={t("auth.passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -111,13 +113,13 @@ export default function SignupPage() {
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create account
+            {t("auth.signUp")}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t("auth.hasAccount")}{" "}
             <Link href="/login" className="text-primary underline-offset-4 hover:underline">
-              Sign in
+              {t("auth.signIn")}
             </Link>
           </p>
         </form>

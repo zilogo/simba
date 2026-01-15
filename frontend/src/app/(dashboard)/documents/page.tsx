@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollectionSelector } from "@/components/documents/collection-selector";
 import { DocumentUploadZone } from "@/components/documents/document-upload-zone";
@@ -9,14 +10,15 @@ import type { Collection } from "@/types/api";
 
 export default function DocumentsPage() {
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("documents.title")}</h1>
           <p className="text-muted-foreground">
-            Manage your knowledge base documents.
+            {t("documents.description")}
           </p>
         </div>
       </div>
@@ -24,9 +26,9 @@ export default function DocumentsPage() {
       {/* Collection Selector */}
       <Card>
         <CardHeader>
-          <CardTitle>Collection</CardTitle>
+          <CardTitle>{t("documents.collection")}</CardTitle>
           <CardDescription>
-            Select or create a collection to organize your documents.
+            {t("documents.collectionDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -38,7 +40,7 @@ export default function DocumentsPage() {
           </div>
           {selectedCollection && (
             <p className="mt-2 text-sm text-muted-foreground">
-              {selectedCollection.description || `${selectedCollection.document_count} documents`}
+              {selectedCollection.description || t("documents.documentsCount", { count: selectedCollection.document_count })}
             </p>
           )}
         </CardContent>
@@ -47,9 +49,9 @@ export default function DocumentsPage() {
       {/* Upload Zone */}
       <Card>
         <CardHeader>
-          <CardTitle>Upload Documents</CardTitle>
+          <CardTitle>{t("documents.uploadDocuments")}</CardTitle>
           <CardDescription>
-            Upload files to add them to your knowledge base.
+            {t("documents.uploadDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -62,9 +64,9 @@ export default function DocumentsPage() {
       {/* Documents Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Documents</CardTitle>
+          <CardTitle>{t("documents.title")}</CardTitle>
           <CardDescription>
-            All documents in the selected collection.
+            {t("documents.documentsInCollection")}
           </CardDescription>
         </CardHeader>
         <CardContent>

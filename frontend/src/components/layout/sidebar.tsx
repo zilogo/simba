@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
 import {
@@ -16,17 +17,18 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: ROUTES.HOME, icon: LayoutDashboard },
-  { name: "Playground", href: ROUTES.PLAYGROUND, icon: Play },
-  { name: "Documents", href: ROUTES.DOCUMENTS, icon: FileText },
-  { name: "Conversations", href: ROUTES.CONVERSATIONS, icon: MessageSquare },
-  { name: "Analytics", href: ROUTES.ANALYTICS, icon: BarChart3 },
-  { name: "Evals", href: ROUTES.EVALS, icon: ClipboardCheck },
-  { name: "Deploy", href: ROUTES.DEPLOY, icon: Rocket },
+  { key: "dashboard", href: ROUTES.HOME, icon: LayoutDashboard },
+  { key: "playground", href: ROUTES.PLAYGROUND, icon: Play },
+  { key: "documents", href: ROUTES.DOCUMENTS, icon: FileText },
+  { key: "conversations", href: ROUTES.CONVERSATIONS, icon: MessageSquare },
+  { key: "analytics", href: ROUTES.ANALYTICS, icon: BarChart3 },
+  { key: "evals", href: ROUTES.EVALS, icon: ClipboardCheck },
+  { key: "deploy", href: ROUTES.DEPLOY, icon: Rocket },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   return (
     <aside className="flex w-64 flex-col border-r bg-card">
@@ -44,7 +46,7 @@ export function Sidebar() {
           const isActive = pathname === item.href;
           return (
             <Link
-              key={item.name}
+              key={item.key}
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -54,7 +56,7 @@ export function Sidebar() {
               )}
             >
               <item.icon className="h-5 w-5" />
-              {item.name}
+              {t(`nav.${item.key}`)}
             </Link>
           );
         })}
@@ -69,7 +71,7 @@ export function Sidebar() {
           className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <HelpCircle className="h-5 w-5" />
-          Help & Docs
+          {t("common.helpDocs")}
         </Link>
       </div>
     </aside>

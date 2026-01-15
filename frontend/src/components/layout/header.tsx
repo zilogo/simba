@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { Bell, Building2, Check, LogOut, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/common/theme-toggle";
+import { LanguageToggle } from "@/components/common/language-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,7 @@ import { clearActiveOrgId } from "@/lib/api";
 
 export function Header() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { session, activeOrganization, organizations, setActiveOrganization } = useAuth();
 
   const handleSignOut = async () => {
@@ -39,7 +42,7 @@ export function Header() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="search"
-            placeholder="Search..."
+            placeholder={t("common.search")}
             className="h-9 w-64 rounded-md border bg-background pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -54,12 +57,12 @@ export function Header() {
               <Button variant="outline" size="sm" className="gap-2">
                 <Building2 className="h-4 w-4" />
                 <span className="max-w-32 truncate">
-                  {activeOrganization?.name || "Select org"}
+                  {activeOrganization?.name || t("common.selectOrg")}
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Organizations</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("common.organizations")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {organizations.map((org) => (
                 <DropdownMenuItem
@@ -75,6 +78,7 @@ export function Header() {
           </DropdownMenu>
         )}
 
+        <LanguageToggle />
         <ThemeToggle />
         <Button variant="ghost" size="icon">
           <Bell className="h-5 w-5" />
@@ -90,7 +94,7 @@ export function Header() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span>{session?.user?.name || "User"}</span>
+                <span>{session?.user?.name || t("common.user")}</span>
                 <span className="text-xs font-normal text-muted-foreground">
                   {session?.user?.email}
                 </span>
@@ -99,7 +103,7 @@ export function Header() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              Sign out
+              {t("common.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

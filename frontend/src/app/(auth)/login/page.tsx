@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { signIn } from "@/lib/auth-client";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message || "Invalid email or password");
+        setError(error.message || t("auth.invalidCredentials"));
         setIsLoading(false);
         return;
       }
@@ -39,7 +41,7 @@ export default function LoginPage() {
       router.push(ROUTES.HOME);
       router.refresh();
     } catch {
-      setError("An unexpected error occurred");
+      setError(t("auth.unexpectedError"));
       setIsLoading(false);
     }
   };
@@ -47,8 +49,8 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome back</CardTitle>
-        <CardDescription>Sign in to your account to continue</CardDescription>
+        <CardTitle className="text-2xl">{t("auth.welcomeBack")}</CardTitle>
+        <CardDescription>{t("auth.signInDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,11 +59,11 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -70,11 +72,11 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder={t("auth.passwordPlaceholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -84,13 +86,13 @@ export default function LoginPage() {
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign in
+            {t("auth.signIn")}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
             <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
-              Sign up
+              {t("auth.signUp")}
             </Link>
           </p>
         </form>
