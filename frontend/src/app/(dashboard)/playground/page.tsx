@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import {
   Bot,
   Trash2,
@@ -36,6 +37,7 @@ import {
 } from "@/components/chat";
 
 function PlaygroundContent() {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
   const [reportComment, setReportComment] = useState("");
@@ -215,9 +217,9 @@ function PlaygroundContent() {
       {/* Header */}
       <div className="flex items-center justify-between pb-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Playground</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("playground.title")}</h1>
           <p className="text-muted-foreground">
-            Test the chat experience with streaming responses.
+            {t("playground.description")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -229,12 +231,12 @@ function PlaygroundContent() {
           >
             <SelectTrigger className="w-[200px]">
               <Database className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Select collection" />
+              <SelectValue placeholder={t("playground.selectCollection")} />
             </SelectTrigger>
             <SelectContent>
               {collections.length === 0 ? (
                 <SelectItem value="_none" disabled>
-                  No collections available
+                  {t("playground.noCollections")}
                 </SelectItem>
               ) : (
                 collections.map((col) => (
@@ -251,7 +253,7 @@ function PlaygroundContent() {
             disabled={messages.length === 0 || isLoading}
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Clear Chat
+            {t("playground.clearChat")}
           </Button>
         </div>
       </div>
@@ -266,11 +268,11 @@ function PlaygroundContent() {
               </div>
             ) : messages.length === 0 ? (
               <ChatEmptyState
-                title="Start a conversation"
+                title={t("playground.startConversation")}
                 description={
                   collection
-                    ? `Ask questions about documents in the "${collection}" collection.`
-                    : "Select a collection to start chatting."
+                    ? t("playground.askAboutCollection", { collection })
+                    : t("playground.selectCollectionFirst")
                 }
                 icon={<Bot className="h-8 w-8" />}
               />
@@ -300,7 +302,7 @@ function PlaygroundContent() {
                             disabled={createEvalMutation.isPending}
                           >
                             <Flag className="mr-2 h-4 w-4" />
-                            Report
+                            {t("playground.report")}
                           </Button>
                           {reportingMessageId === message.id && (
                             <div className="mt-2 rounded-md border bg-muted/30 p-3">
@@ -327,7 +329,7 @@ function PlaygroundContent() {
                               <Textarea
                                 value={reportComment}
                                 onChange={(event) => setReportComment(event.target.value)}
-                                placeholder="Add a comment (optional)"
+                                placeholder={t("playground.addComment")}
                                 className="mt-3 min-h-[60px]"
                               />
                               {reportError && (
@@ -336,7 +338,7 @@ function PlaygroundContent() {
                               {reportSuccessId === message.id && (
                                 <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                                   <CheckCircle2 className="h-4 w-4" />
-                                  Report submitted to evals.
+                                  {t("playground.reportSubmitted")}
                                 </div>
                               )}
                               <div className="mt-3 flex gap-2">
@@ -346,8 +348,8 @@ function PlaygroundContent() {
                                   disabled={createEvalMutation.isPending}
                                 >
                                   {createEvalMutation.isPending
-                                    ? "Reporting..."
-                                    : "Submit report"}
+                                    ? t("playground.reporting")
+                                    : t("playground.submitReport")}
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -355,7 +357,7 @@ function PlaygroundContent() {
                                   onClick={handleCancelReport}
                                   disabled={createEvalMutation.isPending}
                                 >
-                                  Cancel
+                                  {t("common.cancel")}
                                 </Button>
                               </div>
                             </div>
@@ -364,7 +366,7 @@ function PlaygroundContent() {
                             reportingMessageId !== message.id && (
                               <div className="mt-2 flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                                 <CheckCircle2 className="h-4 w-4" />
-                                Report submitted to evals.
+                                {t("playground.reportSubmitted")}
                               </div>
                             )}
                         </div>
@@ -395,9 +397,9 @@ function PlaygroundContent() {
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b px-4 py-3">
                   <div>
-                    <p className="text-sm font-semibold">Sources</p>
+                    <p className="text-sm font-semibold">{t("playground.sources")}</p>
                     <p className="text-xs text-muted-foreground">
-                      {sourcePanel.sources.length} sources
+                      {t("playground.sourcesCount", { count: sourcePanel.sources.length })}
                     </p>
                   </div>
                   <Button variant="ghost" size="icon" onClick={handleSourcesClose}>
@@ -424,7 +426,7 @@ function PlaygroundContent() {
                                 </p>
                                 {source.score !== undefined && (
                                   <p className="text-xs text-muted-foreground">
-                                    Relevance {Math.round(source.score * 100)}%
+                                    {t("playground.relevance", { percent: Math.round(source.score * 100) })}
                                   </p>
                                 )}
                               </div>
@@ -456,13 +458,13 @@ function PlaygroundContent() {
             status={status}
             placeholder={
               collection
-                ? "Type your message..."
-                : "Select a collection first..."
+                ? t("playground.typeMessage")
+                : t("playground.selectCollectionPrompt")
             }
             disabled={!collection}
           />
           <p className="mt-2 text-xs text-muted-foreground">
-            Press Enter to send, Shift+Enter for new line. Connected to: {API_URL}
+            {t("playground.pressEnter", { url: API_URL })}
           </p>
         </div>
       </div>

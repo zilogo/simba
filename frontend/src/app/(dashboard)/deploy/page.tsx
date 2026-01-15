@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
@@ -85,6 +86,7 @@ const getAgentPrompt = (orgId: string, collection: string) => `Add a Simba chat 
 Override CSS variables: \`--simba-primary\`, \`--simba-background\`, \`--simba-foreground\`, \`--simba-muted\`, \`--simba-border\`, \`--simba-radius\``;
 
 export default function DeployPage() {
+  const { t } = useTranslation();
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string>("default");
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
@@ -104,9 +106,9 @@ export default function DeployPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Deploy</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("deploy.title")}</h1>
         <p className="text-muted-foreground">
-          Add Simba chat to your website or application.
+          {t("deploy.descriptionAlt")}
         </p>
       </div>
 
@@ -115,17 +117,17 @@ export default function DeployPage() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Copy Prompt for Claude / Cursor
+            {t("deploy.copyPrompt")}
           </CardTitle>
           <CardDescription>
-            Select your collection, then copy this prompt and paste it into your AI coding assistant.
+            {t("deploy.copyPromptDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Inline config */}
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Collection:</span>
+              <span className="text-sm text-muted-foreground">{t("evals.collection")}:</span>
               <div className="relative">
                 <button
                   type="button"
@@ -151,7 +153,7 @@ export default function DeployPage() {
                         default
                       </button>
                       {isLoadingCollections ? (
-                        <div className="px-3 py-2 text-sm text-muted-foreground">Loading...</div>
+                        <div className="px-3 py-2 text-sm text-muted-foreground">{t("common.loading")}</div>
                       ) : (
                         collections.map((col) => (
                           <button
@@ -176,7 +178,7 @@ export default function DeployPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Org:</span>
+              <span>{t("deploy.org")}</span>
               <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">{organizationId}</code>
             </div>
           </div>
@@ -186,12 +188,12 @@ export default function DeployPage() {
             {copiedPrompt ? (
               <>
                 <Check className="mr-2 h-5 w-5" />
-                Copied to Clipboard!
+                {t("deploy.copied")}
               </>
             ) : (
               <>
                 <Copy className="mr-2 h-5 w-5" />
-                Copy Integration Prompt
+                {t("deploy.copyIntegrationPrompt")}
               </>
             )}
           </Button>
@@ -199,7 +201,7 @@ export default function DeployPage() {
           {/* Preview */}
           <details className="group">
             <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-              Preview prompt
+              {t("deploy.previewPrompt")}
             </summary>
             <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-muted p-4 text-xs font-mono whitespace-pre-wrap">
               {getAgentPrompt(organizationId, selectedCollection)}
@@ -211,8 +213,8 @@ export default function DeployPage() {
       {/* Installation */}
       <Card>
         <CardHeader>
-          <CardTitle>Installation</CardTitle>
-          <CardDescription>Install the simba-chat package in your project.</CardDescription>
+          <CardTitle>{t("deploy.installation")}</CardTitle>
+          <CardDescription>{t("deploy.installationDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <CodeBlock code="npm install simba-chat" language="bash" />
@@ -222,18 +224,18 @@ export default function DeployPage() {
       {/* Quick Start */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Start</CardTitle>
-          <CardDescription>Choose your preferred integration style.</CardDescription>
+          <CardTitle>{t("deploy.quickStart")}</CardTitle>
+          <CardDescription>{t("deploy.quickStartDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Inline Chat */}
           <div className="space-y-3">
             <h4 className="font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              Inline Chat
+              {t("deploy.inlineChat")}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Embed the chat directly in your page layout.
+              {t("deploy.inlineChatDesc")}
             </p>
             <CodeBlock code={getInlineChatExample(organizationId, selectedCollection)} language="tsx" />
           </div>
@@ -242,10 +244,10 @@ export default function DeployPage() {
           <div className="space-y-3">
             <h4 className="font-medium flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
-              Floating Bubble
+              {t("deploy.floatingBubble")}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Add a floating chat bubble to the corner of your site.
+              {t("deploy.floatingBubbleDesc")}
             </p>
             <CodeBlock code={getBubbleChatExample(organizationId, selectedCollection)} language="tsx" />
           </div>
@@ -255,8 +257,8 @@ export default function DeployPage() {
       {/* Theming */}
       <Card>
         <CardHeader>
-          <CardTitle>Theming</CardTitle>
-          <CardDescription>Customize the chat widget appearance with CSS variables.</CardDescription>
+          <CardTitle>{t("deploy.theming")}</CardTitle>
+          <CardDescription>{t("deploy.themingDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <CodeBlock code={THEMING_EXAMPLE} language="css" />

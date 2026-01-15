@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, ChevronDown, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollections, useCreateCollection } from "@/hooks";
@@ -12,6 +13,7 @@ interface CollectionSelectorProps {
 }
 
 export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
@@ -52,11 +54,11 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
         <span className="flex items-center gap-2">
           <FolderOpen className="h-4 w-4 text-muted-foreground" />
           {isLoading ? (
-            "Loading..."
+            t("common.loading")
           ) : selected ? (
             selected.name
           ) : (
-            <span className="text-muted-foreground">Select a collection</span>
+            <span className="text-muted-foreground">{t("documents.selectCollection")}</span>
           )}
         </span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -67,7 +69,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
           <div className="max-h-60 overflow-auto p-1">
             {collections.length === 0 && !showCreate ? (
               <div className="px-3 py-8 text-center text-sm text-muted-foreground">
-                No collections yet. Create one to get started.
+                {t("documents.noCollectionsHint")}
               </div>
             ) : (
               collections.map((collection) => (
@@ -84,7 +86,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
                 >
                   <span>{collection.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {collection.document_count} docs
+                    {t("documents.docsCount", { count: collection.document_count })}
                   </span>
                 </button>
               ))
@@ -96,7 +98,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
               <form onSubmit={handleCreate} className="space-y-2">
                 <input
                   type="text"
-                  placeholder="Collection name"
+                  placeholder={t("documents.collectionNamePlaceholder")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -104,7 +106,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
                 />
                 <input
                   type="text"
-                  placeholder="Description (optional)"
+                  placeholder={t("documents.descriptionPlaceholder")}
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
                   className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -115,7 +117,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
                     size="sm"
                     disabled={!newName.trim() || createMutation.isPending}
                   >
-                    {createMutation.isPending ? "Creating..." : "Create"}
+                    {createMutation.isPending ? t("documents.creating") : t("common.create")}
                   </Button>
                   <Button
                     type="button"
@@ -123,7 +125,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
                     variant="outline"
                     onClick={() => setShowCreate(false)}
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 </div>
               </form>
@@ -136,7 +138,7 @@ export function CollectionSelector({ selectedId, onSelect }: CollectionSelectorP
                 onClick={() => setShowCreate(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                New Collection
+                {t("documents.newCollection")}
               </Button>
             )}
           </div>

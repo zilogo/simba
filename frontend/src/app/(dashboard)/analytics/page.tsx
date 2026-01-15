@@ -1,19 +1,21 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { BarChart3, TrendingUp, Clock, ThumbsUp, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAnalyticsOverview, useEvalMetrics } from "@/hooks";
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const { data: overview, isLoading: overviewLoading } = useAnalyticsOverview();
   const { data: evalMetrics, isLoading: evalsLoading } = useEvalMetrics();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("analytics.title")}</h1>
         <p className="text-muted-foreground">
-          Monitor performance and quality metrics.
+          {t("analytics.descriptionAlt")}
         </p>
       </div>
 
@@ -29,33 +31,33 @@ export default function AnalyticsPage() {
         ) : (
           <>
             <MetricCard
-              title="Avg. Response Time"
+              title={t("analytics.avgResponseTimeLabel")}
               value={formatResponseTime(overview?.avg_response_time_ms.value ?? 0)}
-              description="Target: < 2s"
+              description={t("analytics.targetResponseTime")}
               icon={Clock}
               trend={formatChange(overview?.avg_response_time_ms.change ?? 0)}
               trendUp={false}
             />
             <MetricCard
-              title="Resolution Rate"
+              title={t("analytics.resolutionRateLabel")}
               value={formatPercent(overview?.resolution_rate.value ?? 0)}
-              description="Without human escalation"
+              description={t("analytics.resolutionRateDesc")}
               icon={TrendingUp}
               trend={formatChange(overview?.resolution_rate.change ?? 0)}
               trendUp={(overview?.resolution_rate.change ?? 0) > 0}
             />
             <MetricCard
-              title="User Satisfaction"
+              title={t("analytics.userSatisfactionLabel")}
               value={formatSatisfaction(overview?.user_satisfaction.value ?? 0)}
-              description="Based on feedback"
+              description={t("analytics.userSatisfactionDesc")}
               icon={ThumbsUp}
               trend={formatChange(overview?.user_satisfaction.change ?? 0)}
               trendUp={(overview?.user_satisfaction.change ?? 0) > 0}
             />
             <MetricCard
-              title="Total Conversations"
+              title={t("analytics.totalConversationsLabel")}
               value={formatNumber(overview?.total_conversations.value ?? 0)}
-              description={`This ${overview?.total_conversations.period ?? "week"}`}
+              description={t("analytics.thisPeriod", { period: overview?.total_conversations.period ?? "week" })}
               icon={BarChart3}
               trend={formatChange(overview?.total_conversations.change ?? 0)}
               trendUp={(overview?.total_conversations.change ?? 0) > 0}
@@ -68,24 +70,24 @@ export default function AnalyticsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Response Quality</CardTitle>
-            <CardDescription>Evaluation scores over time</CardDescription>
+            <CardTitle>{t("analytics.responseQuality")}</CardTitle>
+            <CardDescription>{t("analytics.evaluationScoresDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="h-64">
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              Chart will be displayed here
+              {t("analytics.chartPlaceholder")}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Query Volume</CardTitle>
-            <CardDescription>Conversations per day</CardDescription>
+            <CardTitle>{t("analytics.queryVolume")}</CardTitle>
+            <CardDescription>{t("analytics.conversationsPerDay")}</CardDescription>
           </CardHeader>
           <CardContent className="h-64">
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              Chart will be displayed here
+              {t("analytics.chartPlaceholder")}
             </div>
           </CardContent>
         </Card>
@@ -94,8 +96,8 @@ export default function AnalyticsPage() {
       {/* Eval Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle>Evaluation Metrics</CardTitle>
-          <CardDescription>AI response quality breakdown</CardDescription>
+          <CardTitle>{t("analytics.evaluationMetrics")}</CardTitle>
+          <CardDescription>{t("analytics.evaluationMetricsDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           {evalsLoading ? (
@@ -104,10 +106,10 @@ export default function AnalyticsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <EvalMetric label="Relevance Score" value={evalMetrics?.relevance_score ?? 0} />
-              <EvalMetric label="Accuracy Score" value={evalMetrics?.accuracy_score ?? 0} />
-              <EvalMetric label="Completeness Score" value={evalMetrics?.completeness_score ?? 0} />
-              <EvalMetric label="Citation Score" value={evalMetrics?.citation_score ?? 0} />
+              <EvalMetric label={t("analytics.relevanceScore")} value={evalMetrics?.relevance_score ?? 0} />
+              <EvalMetric label={t("analytics.accuracyScore")} value={evalMetrics?.accuracy_score ?? 0} />
+              <EvalMetric label={t("analytics.completenessScore")} value={evalMetrics?.completeness_score ?? 0} />
+              <EvalMetric label={t("analytics.citationScore")} value={evalMetrics?.citation_score ?? 0} />
             </div>
           )}
         </CardContent>

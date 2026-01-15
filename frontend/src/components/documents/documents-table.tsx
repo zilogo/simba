@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FileText,
   Trash2,
@@ -22,28 +23,28 @@ interface DocumentsTableProps {
   collectionId: string | null;
 }
 
-function StatusBadge({ status }: { status: DocumentStatus }) {
+function StatusBadge({ status, t }: { status: DocumentStatus; t: (key: string) => string }) {
   const config = {
     pending: {
       icon: Clock,
       className: "text-yellow-600 bg-yellow-100",
-      label: "Pending",
+      label: t("status.pending"),
     },
     processing: {
       icon: Loader2,
       className: "text-blue-600 bg-blue-100",
-      label: "Processing",
+      label: t("status.processing"),
       spin: true,
     },
     ready: {
       icon: CheckCircle,
       className: "text-green-600 bg-green-100",
-      label: "Ready",
+      label: t("status.ready"),
     },
     failed: {
       icon: AlertCircle,
       className: "text-red-600 bg-red-100",
-      label: "Failed",
+      label: t("status.failed"),
     },
   }[status];
 
@@ -77,6 +78,7 @@ function formatDate(dateString: string): string {
 }
 
 export function DocumentsTable({ collectionId }: DocumentsTableProps) {
+  const { t } = useTranslation();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [reprocessingId, setReprocessingId] = useState<string | null>(null);
   const [viewingChunks, setViewingChunks] = useState<Document | null>(null);
@@ -128,7 +130,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
   if (!collectionId) {
     return (
       <div className="py-12 text-center text-muted-foreground">
-        Select a collection to view documents
+        {t("documents.selectCollectionHint")}
       </div>
     );
   }
@@ -138,7 +140,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
       <div className="flex flex-col items-center justify-center py-12">
         <FileText className="h-12 w-12 text-muted-foreground/50" />
         <p className="mt-4 text-sm text-muted-foreground">
-          No documents in this collection yet
+          {t("documents.noDocumentsInCollection")}
         </p>
       </div>
     );
@@ -149,7 +151,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
       {hasProcessing && (
         <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Processing documents...
+          {t("documents.processingDocuments")}
         </div>
       )}
 
@@ -157,12 +159,12 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th className="p-3 text-left font-medium">Name</th>
-              <th className="p-3 text-left font-medium">Status</th>
-              <th className="p-3 text-left font-medium">Chunks</th>
-              <th className="p-3 text-left font-medium">Size</th>
-              <th className="p-3 text-left font-medium">Uploaded</th>
-              <th className="p-3 text-left font-medium">Actions</th>
+              <th className="p-3 text-left font-medium">{t("table.name")}</th>
+              <th className="p-3 text-left font-medium">{t("table.status")}</th>
+              <th className="p-3 text-left font-medium">{t("table.chunks")}</th>
+              <th className="p-3 text-left font-medium">{t("table.size")}</th>
+              <th className="p-3 text-left font-medium">{t("table.uploaded")}</th>
+              <th className="p-3 text-left font-medium">{t("table.actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -178,7 +180,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
                   )}
                 </td>
                 <td className="p-3">
-                  <StatusBadge status={doc.status} />
+                  <StatusBadge status={doc.status} t={t} />
                 </td>
                 <td className="p-3 text-muted-foreground">{doc.chunk_count}</td>
                 <td className="p-3 text-muted-foreground">
@@ -194,7 +196,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => setViewingChunks(doc)}
-                        title="View Chunks"
+                        title={t("documents.viewChunks")}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -203,7 +205,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDownload(doc)}
-                      title="Download"
+                      title={t("common.download")}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -213,7 +215,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
                         size="sm"
                         onClick={() => handleReprocess(doc)}
                         disabled={reprocessingId === doc.id}
-                        title="Reprocess"
+                        title={t("documents.reprocess")}
                       >
                         <RefreshCw
                           className={`h-4 w-4 ${
@@ -227,7 +229,7 @@ export function DocumentsTable({ collectionId }: DocumentsTableProps) {
                       size="sm"
                       onClick={() => handleDelete(doc)}
                       disabled={deletingId === doc.id}
-                      title="Delete"
+                      title={t("common.delete")}
                       className="text-red-600 hover:text-red-700"
                     >
                       {deletingId === doc.id ? (

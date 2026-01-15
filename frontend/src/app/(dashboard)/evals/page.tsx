@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ClipboardCheck,
   Plus,
@@ -80,18 +81,18 @@ function ScoreBadge({ value, label }: { value: number | null; label: string }) {
   );
 }
 
-function PassBadge({ passed }: { passed: boolean | null }) {
+function PassBadge({ passed, t }: { passed: boolean | null; t: (key: string) => string }) {
   if (passed === null) return <span className="text-xs text-muted-foreground">—</span>;
 
   return passed ? (
     <Badge variant="outline" className="border-green-500 bg-green-50 text-green-700">
       <CheckCircle2 className="mr-1 h-3 w-3" />
-      Pass
+      {t("evals.pass")}
     </Badge>
   ) : (
     <Badge variant="outline" className="border-red-500 bg-red-50 text-red-700">
       <XCircle className="mr-1 h-3 w-3" />
-      Fail
+      {t("evals.fail")}
     </Badge>
   );
 }
@@ -104,6 +105,7 @@ function EvalRow({
   onUpdateErrorCategory,
   isDeleting,
   isRunning,
+  t,
 }: {
   evalItem: EvalItem;
   onDelete: () => void;
@@ -112,6 +114,7 @@ function EvalRow({
   onUpdateErrorCategory: (category: string) => void;
   isDeleting: boolean;
   isRunning: boolean;
+  t: (key: string) => string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editingComment, setEditingComment] = useState(false);
@@ -144,16 +147,16 @@ function EvalRow({
           </button>
         </td>
         <td className="p-3">
-          <PassBadge passed={evalItem.passed} />
+          <PassBadge passed={evalItem.passed} t={t} />
         </td>
         <td className="p-3">
           <div className="flex gap-1">
-            <ScoreBadge value={evalItem.relevance_score} label="Relevance" />
+            <ScoreBadge value={evalItem.relevance_score} label={t("evals.relevance")} />
           </div>
         </td>
         <td className="p-3">
           <div className="flex gap-1">
-            <ScoreBadge value={evalItem.faithfulness_score} label="Faithfulness" />
+            <ScoreBadge value={evalItem.faithfulness_score} label={t("evals.faithfulness")} />
           </div>
         </td>
         <td className="p-3">
@@ -184,7 +187,7 @@ function EvalRow({
               size="sm"
               onClick={onRun}
               disabled={isRunning}
-              title="Run evaluation"
+              title={t("evals.runEvaluation")}
             >
               {isRunning ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -198,7 +201,7 @@ function EvalRow({
               onClick={onDelete}
               disabled={isDeleting}
               className="text-red-600 hover:text-red-700"
-              title="Delete"
+              title={t("common.delete")}
             >
               {isDeleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -215,18 +218,18 @@ function EvalRow({
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium">Full Question</h4>
+                  <h4 className="text-sm font-medium">{t("evals.fullQuestion")}</h4>
                   <p className="mt-1 text-sm">{evalItem.question}</p>
                 </div>
                 {evalItem.response && (
                   <div>
-                    <h4 className="text-sm font-medium">Response</h4>
+                    <h4 className="text-sm font-medium">{t("evals.response")}</h4>
                     <p className="mt-1 whitespace-pre-wrap text-sm">{evalItem.response}</p>
                   </div>
                 )}
                 {evalItem.sources && evalItem.sources.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium">Sources Retrieved</h4>
+                    <h4 className="text-sm font-medium">{t("evals.sourcesRetrieved")}</h4>
                     <div className="mt-1 flex flex-wrap gap-2">
                       {evalItem.sources.map((source, i) => (
                         <Badge key={i} variant="secondary">
@@ -238,7 +241,7 @@ function EvalRow({
                 )}
                 {evalItem.sources_groundtruth && evalItem.sources_groundtruth.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium">Expected Sources (Groundtruth)</h4>
+                    <h4 className="text-sm font-medium">{t("evals.expectedSources")}</h4>
                     <div className="mt-1 flex flex-wrap gap-2">
                       {evalItem.sources_groundtruth.map((source, i) => (
                         <Badge key={i} variant="outline" className="border-green-500 text-green-600">
@@ -250,7 +253,7 @@ function EvalRow({
                 )}
                 {evalItem.answer_groundtruth && (
                   <div>
-                    <h4 className="text-sm font-medium">Expected Answer (Groundtruth)</h4>
+                    <h4 className="text-sm font-medium">{t("evals.expectedAnswer")}</h4>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground bg-green-50 p-2 rounded border border-green-200">
                       {evalItem.answer_groundtruth}
                     </p>
@@ -259,7 +262,7 @@ function EvalRow({
               </div>
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium">Comment</h4>
+                  <h4 className="text-sm font-medium">{t("evals.comment")}</h4>
                   {editingComment ? (
                     <div className="mt-1 flex items-center gap-2">
                       <input
@@ -279,7 +282,7 @@ function EvalRow({
                   ) : (
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
-                        {evalItem.comment || "No comment"}
+                        {evalItem.comment || t("evals.noComment")}
                       </span>
                       <Button
                         variant="ghost"
@@ -293,7 +296,7 @@ function EvalRow({
                   )}
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium">Error Category</h4>
+                  <h4 className="text-sm font-medium">{t("evals.errorCategory")}</h4>
                   <select
                     value={evalItem.error_category || ""}
                     onChange={(e) => onUpdateErrorCategory(e.target.value)}
@@ -308,34 +311,34 @@ function EvalRow({
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Relevance:</span>{" "}
+                    <span className="text-muted-foreground">{t("evals.relevance")}:</span>{" "}
                     <span className="font-medium">{formatScore(evalItem.relevance_score)}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Faithfulness:</span>{" "}
+                    <span className="text-muted-foreground">{t("evals.faithfulness")}:</span>{" "}
                     <span className="font-medium">{formatScore(evalItem.faithfulness_score)}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Precision:</span>{" "}
+                    <span className="text-muted-foreground">{t("evals.precision")}:</span>{" "}
                     <span className="font-medium">{formatPercent(evalItem.retrieval_precision)}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Recall:</span>{" "}
+                    <span className="text-muted-foreground">{t("evals.recall")}:</span>{" "}
                     <span className="font-medium">{formatPercent(evalItem.retrieval_recall)}</span>
                   </div>
                 </div>
                 {evalItem.conversation_history && (
                   <div>
-                    <h4 className="text-sm font-medium">Conversation History</h4>
+                    <h4 className="text-sm font-medium">{t("evals.conversationHistory")}</h4>
                     <pre className="mt-1 max-h-32 overflow-auto rounded bg-muted p-2 text-xs">
                       {evalItem.conversation_history}
                     </pre>
                   </div>
                 )}
                 <div className="text-xs text-muted-foreground">
-                  Created: {formatDate(evalItem.created_at)}
+                  {t("evals.created")}: {formatDate(evalItem.created_at)}
                   {evalItem.updated_at !== evalItem.created_at && (
-                    <> | Updated: {formatDate(evalItem.updated_at)}</>
+                    <> | {t("evals.updated")}: {formatDate(evalItem.updated_at)}</>
                   )}
                 </div>
               </div>
@@ -347,7 +350,7 @@ function EvalRow({
   );
 }
 
-function StatsCards({ evals }: { evals: EvalItem[] }) {
+function StatsCards({ evals, t }: { evals: EvalItem[]; t: (key: string, options?: Record<string, unknown>) => string }) {
   const stats = useMemo(() => {
     const withResults = evals.filter((e) => e.response !== null);
     const passed = withResults.filter((e) => e.passed === true).length;
@@ -375,7 +378,7 @@ function StatsCards({ evals }: { evals: EvalItem[] }) {
     <div className="grid gap-4 md:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("evals.passRate")}</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -383,38 +386,38 @@ function StatsCards({ evals }: { evals: EvalItem[] }) {
             {stats.passRate !== null ? `${Math.round(stats.passRate * 100)}%` : "—"}
           </div>
           <p className="text-xs text-muted-foreground">
-            {stats.passed} passed, {stats.failed} failed
+            {t("evals.passedFailed", { passed: stats.passed, failed: stats.failed })}
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg Relevance</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("evals.avgRelevance")}</CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatScore(stats.avgRelevance)}</div>
-          <p className="text-xs text-muted-foreground">Response relevance to question</p>
+          <p className="text-xs text-muted-foreground">{t("evals.relevanceDescription")}</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg Faithfulness</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("evals.avgFaithfulness")}</CardTitle>
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatScore(stats.avgFaithfulness)}</div>
-          <p className="text-xs text-muted-foreground">Grounded in context</p>
+          <p className="text-xs text-muted-foreground">{t("evals.faithfulnessDescription")}</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg Latency</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("evals.avgLatency")}</CardTitle>
           <Zap className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatLatency(stats.avgLatency)}</div>
-          <p className="text-xs text-muted-foreground">{stats.withResults} evaluated</p>
+          <p className="text-xs text-muted-foreground">{t("evals.evaluated", { count: stats.withResults })}</p>
         </CardContent>
       </Card>
     </div>
@@ -422,6 +425,7 @@ function StatsCards({ evals }: { evals: EvalItem[] }) {
 }
 
 export default function EvalsPage() {
+  const { t } = useTranslation();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
@@ -463,7 +467,7 @@ export default function EvalsPage() {
   };
 
   const handleDelete = async (evalItem: EvalItem) => {
-    if (!confirm("Delete this eval item? This cannot be undone.")) return;
+    if (!confirm(t("evals.deleteConfirm"))) return;
 
     setDeletingId(evalItem.id);
     try {
@@ -609,9 +613,9 @@ export default function EvalsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Evaluations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("evals.title")}</h1>
           <p className="text-muted-foreground">
-            Measure and track customer service quality.
+            {t("evals.descriptionAlt")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -621,7 +625,7 @@ export default function EvalsPage() {
               onClick={() => setShowExportMenu(!showExportMenu)}
             >
               <Download className="mr-2 h-4 w-4" />
-              Export
+              {t("evals.export")}
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
             {showExportMenu && (
@@ -631,21 +635,21 @@ export default function EvalsPage() {
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
                 >
                   <FileJson className="h-4 w-4" />
-                  Export as JSON
+                  {t("evals.exportJson")}
                 </button>
                 <button
                   onClick={exportToCsv}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
                 >
                   <FileSpreadsheet className="h-4 w-4" />
-                  Export as CSV
+                  {t("evals.exportCsv")}
                 </button>
                 <button
                   onClick={exportToClaudeCode}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
                 >
                   <Terminal className="h-4 w-4" />
-                  Export to Claude Code
+                  {t("evals.exportClaudeCode")}
                 </button>
               </div>
             )}
@@ -673,27 +677,27 @@ export default function EvalsPage() {
               ) : (
                 <PlayCircle className="mr-2 h-4 w-4" />
               )}
-              Run All ({pendingEvals})
+              {t("evals.runAll", { count: pendingEvals })}
             </Button>
           )}
           <Button variant="outline" onClick={() => setShowGenerateModal(true)}>
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate
+            {t("evals.generate")}
           </Button>
           <Button onClick={() => setShowAddModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Eval
+            {t("evals.addEval")}
           </Button>
         </div>
       </div>
 
-      <StatsCards evals={evals} />
+      <StatsCards evals={evals} t={t} />
 
       <Card>
         <CardHeader>
-          <CardTitle>Evaluation Items</CardTitle>
+          <CardTitle>{t("evals.evaluationItems")}</CardTitle>
           <CardDescription>
-            {isLoading ? "Loading..." : `${evals.length} evaluation(s)`}
+            {isLoading ? t("common.loading") : t("evals.evaluatedCount", { count: evals.length })}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -706,19 +710,18 @@ export default function EvalsPage() {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                 <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold">No evaluations yet</h3>
+              <h3 className="mt-4 text-lg font-semibold">{t("evals.noEvalsYet")}</h3>
               <p className="mt-2 max-w-sm text-center text-sm text-muted-foreground">
-                Add evaluation questions manually or generate them from your documents to measure
-                response quality.
+                {t("evals.noEvalsHint")}
               </p>
               <div className="mt-4 flex gap-2">
                 <Button variant="outline" onClick={() => setShowGenerateModal(true)}>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Generate from Docs
+                  {t("evals.generateFromDocs")}
                 </Button>
                 <Button onClick={() => setShowAddModal(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Manually
+                  {t("evals.addManually")}
                 </Button>
               </div>
             </div>
@@ -727,15 +730,15 @@ export default function EvalsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="p-3 text-left font-medium">Question</th>
-                    <th className="p-3 text-left font-medium">Status</th>
-                    <th className="p-3 text-left font-medium">Relevance</th>
-                    <th className="p-3 text-left font-medium">Faithful</th>
-                    <th className="p-3 text-left font-medium">Precision</th>
-                    <th className="p-3 text-left font-medium">Recall</th>
-                    <th className="p-3 text-left font-medium">Latency</th>
-                    <th className="p-3 text-left font-medium">Error</th>
-                    <th className="p-3 text-left font-medium">Actions</th>
+                    <th className="p-3 text-left font-medium">{t("evals.question")}</th>
+                    <th className="p-3 text-left font-medium">{t("table.status")}</th>
+                    <th className="p-3 text-left font-medium">{t("evals.relevance")}</th>
+                    <th className="p-3 text-left font-medium">{t("evals.faithful")}</th>
+                    <th className="p-3 text-left font-medium">{t("evals.precision")}</th>
+                    <th className="p-3 text-left font-medium">{t("evals.recall")}</th>
+                    <th className="p-3 text-left font-medium">{t("evals.latency")}</th>
+                    <th className="p-3 text-left font-medium">{t("evals.error")}</th>
+                    <th className="p-3 text-left font-medium">{t("table.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -749,6 +752,7 @@ export default function EvalsPage() {
                       onUpdateErrorCategory={(cat) => handleUpdateErrorCategory(evalItem.id, cat)}
                       isDeleting={deletingId === evalItem.id}
                       isRunning={runningId === evalItem.id}
+                      t={t}
                     />
                   ))}
                 </tbody>
@@ -761,51 +765,51 @@ export default function EvalsPage() {
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-lg rounded-lg bg-background p-6 shadow-lg">
-            <h2 className="text-lg font-semibold">Add Evaluation Item</h2>
+            <h2 className="text-lg font-semibold">{t("evals.addEvalItem")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Add a question to evaluate customer service responses.
+              {t("evals.addEvalItemHint")}
             </p>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="text-sm font-medium">Question</label>
+                <label className="text-sm font-medium">{t("evals.question")}</label>
                 <textarea
                   value={newQuestion}
                   onChange={(e) => setNewQuestion(e.target.value)}
                   className="mt-1 h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
-                  placeholder="What is your return policy?"
+                  placeholder={t("evals.questionPlaceholder")}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  Expected Source Documents (comma-separated, optional)
+                  {t("evals.expectedSourcesLabel")}
                 </label>
                 <input
                   type="text"
                   value={newGroundtruth}
                   onChange={(e) => setNewGroundtruth(e.target.value)}
                   className="mt-1 h-9 w-full rounded-md border bg-background px-3 text-sm"
-                  placeholder="returns-policy.pdf, faq.pdf"
+                  placeholder={t("evals.expectedSourcesPlaceholder")}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  Expected Answer (optional)
+                  {t("evals.expectedAnswerLabel")}
                 </label>
                 <textarea
                   value={newAnswerGroundtruth}
                   onChange={(e) => setNewAnswerGroundtruth(e.target.value)}
                   className="mt-1 h-20 w-full rounded-md border bg-background px-3 py-2 text-sm"
-                  placeholder="The ideal response to compare against..."
+                  placeholder={t("evals.expectedAnswerPlaceholder")}
                 />
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowAddModal(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleCreate} disabled={createMutation.isPending}>
                 {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add
+                {t("common.add")}
               </Button>
             </div>
           </div>
@@ -815,13 +819,13 @@ export default function EvalsPage() {
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-lg">
-            <h2 className="text-lg font-semibold">Generate Questions</h2>
+            <h2 className="text-lg font-semibold">{t("evals.generateQuestions")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Use AI to generate evaluation questions from your documents.
+              {t("evals.generateQuestionsHint")}
             </p>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="text-sm font-medium">Collection</label>
+                <label className="text-sm font-medium">{t("evals.collection")}</label>
                 <select
                   value={selectedCollection}
                   onChange={(e) => setSelectedCollection(e.target.value)}
@@ -836,7 +840,7 @@ export default function EvalsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Number of Questions</label>
+                <label className="text-sm font-medium">{t("evals.numberOfQuestions")}</label>
                 <input
                   type="number"
                   value={numQuestions}
@@ -849,11 +853,11 @@ export default function EvalsPage() {
             </div>
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowGenerateModal(false)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleGenerate} disabled={generateMutation.isPending}>
                 {generateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Generate
+                {t("evals.generate")}
               </Button>
             </div>
           </div>
@@ -863,9 +867,9 @@ export default function EvalsPage() {
       {showClaudeCodeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-2xl rounded-lg bg-background p-6 shadow-lg">
-            <h2 className="text-lg font-semibold">Export to Claude Code</h2>
+            <h2 className="text-lg font-semibold">{t("evals.exportToClaudeCode")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Copy this prompt and paste it into your Claude Code terminal.
+              {t("evals.exportToClaudeCodeHint")}
             </p>
             <div className="mt-4">
               <pre className="max-h-96 overflow-auto rounded-md border bg-muted p-4 text-xs">
@@ -874,18 +878,18 @@ export default function EvalsPage() {
             </div>
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowClaudeCodeModal(false)}>
-                Close
+                {t("common.close")}
               </Button>
               <Button onClick={copyClaudeCodePrompt}>
                 {copied ? (
                   <>
                     <Check className="mr-2 h-4 w-4" />
-                    Copied!
+                    {t("common.copied")}
                   </>
                 ) : (
                   <>
                     <Terminal className="mr-2 h-4 w-4" />
-                    Copy to Clipboard
+                    {t("common.copyToClipboard")}
                   </>
                 )}
               </Button>

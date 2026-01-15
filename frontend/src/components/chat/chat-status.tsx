@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import type { ToolCall } from "@/hooks";
 
@@ -10,21 +11,27 @@ interface ChatStatusProps {
   className?: string;
 }
 
-const toolStatusMessages: Record<string, string> = {
-  rag: "Searching documents",
-  search: "Searching",
-  default: "Processing",
-};
-
 export function ChatStatus({ tools, isThinking, className }: ChatStatusProps) {
+  const { t } = useTranslation();
+
   // Find any running tool
   const runningTool = tools?.find((t) => t.status === "running");
 
   if (!runningTool && !isThinking) return null;
 
-  const statusText = runningTool
-    ? toolStatusMessages[runningTool.name] || toolStatusMessages.default
-    : "Thinking";
+  const getStatusText = () => {
+    if (!runningTool) return t("chat.thinking");
+    switch (runningTool.name) {
+      case "rag":
+        return t("chat.searchingDocuments");
+      case "search":
+        return t("chat.searching");
+      default:
+        return t("chat.processing");
+    }
+  };
+
+  const statusText = getStatusText();
 
   return (
     <div

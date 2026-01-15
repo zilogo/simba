@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Upload, X, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUploadDocument } from "@/hooks";
@@ -17,6 +18,7 @@ interface PendingFile {
 }
 
 export function DocumentUploadZone({ collectionId, onUploadComplete }: DocumentUploadZoneProps) {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
@@ -111,11 +113,11 @@ export function DocumentUploadZone({ collectionId, onUploadComplete }: DocumentU
         </div>
         <p className="mt-4 text-sm font-medium">
           {collectionId
-            ? "Drag and drop files here, or click to browse"
-            : "Select a collection first"}
+            ? t("documents.dragDropHint")
+            : t("documents.noCollection")}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Supports PDF, DOCX, TXT, and MD files
+          {t("documents.supportedFormats")}
         </p>
         <label className="mt-4">
           <input
@@ -132,7 +134,7 @@ export function DocumentUploadZone({ collectionId, onUploadComplete }: DocumentU
             disabled={!collectionId}
             asChild
           >
-            <span className="cursor-pointer">Browse Files</span>
+            <span className="cursor-pointer">{t("documents.browseFiles")}</span>
           </Button>
         </label>
       </div>
@@ -141,14 +143,14 @@ export function DocumentUploadZone({ collectionId, onUploadComplete }: DocumentU
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">
-              {pendingCount} file(s) ready to upload
+              {t("documents.filesReady", { count: pendingCount })}
             </span>
             <Button
               size="sm"
               onClick={uploadAll}
               disabled={!collectionId || pendingCount === 0}
             >
-              Upload All
+              {t("documents.uploadAll")}
             </Button>
           </div>
 
@@ -170,7 +172,7 @@ export function DocumentUploadZone({ collectionId, onUploadComplete }: DocumentU
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   )}
                   {pending.status === "done" && (
-                    <span className="text-xs text-green-600">Uploaded</span>
+                    <span className="text-xs text-green-600">{t("documents.uploaded")}</span>
                   )}
                   {pending.status === "error" && (
                     <span className="text-xs text-red-600">{pending.error}</span>

@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { MessageSquare, Search, Trash2, Loader2, Calendar, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useConversations, useDeleteConversation } from "@/hooks";
 import type { ConversationListItem } from "@/types/api";
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, t: (key: string, options?: Record<string, unknown>) => string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -18,9 +19,9 @@ function formatDate(dateString: string): string {
     const hours = Math.floor(diff / (60 * 60 * 1000));
     if (hours < 1) {
       const minutes = Math.floor(diff / (60 * 1000));
-      return minutes < 1 ? "Just now" : `${minutes}m ago`;
+      return minutes < 1 ? t("time.justNow") : t("time.minutesAgo", { minutes });
     }
-    return `${hours}h ago`;
+    return t("time.hoursAgo", { hours });
   }
 
   // Less than 7 days - show day name
@@ -41,11 +42,13 @@ function ConversationRow({
   onDelete,
   onOpen,
   isDeleting,
+  t,
 }: {
   conversation: ConversationListItem;
   onDelete: () => void;
   onOpen: () => void;
   isDeleting: boolean;
+  t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   return (
     <div
@@ -57,12 +60,12 @@ function ConversationRow({
           <MessageSquare className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <p className="font-medium">Conversation {conversation.id.slice(0, 8)}...</p>
+          <p className="font-medium">{t("conversations.conversationId", { id: conversation.id.slice(0, 8) })}...</p>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span>{conversation.message_count} messages</span>
+            <span>{t("conversations.messagesCount", { count: conversation.message_count })}</span>
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {formatDate(conversation.created_at)}
+              {formatDate(conversation.created_at, t)}
             </span>
           </div>
         </div>
@@ -101,6 +104,7 @@ function ConversationRow({
 }
 
 export default function ConversationsPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
@@ -122,7 +126,7 @@ export default function ConversationsPage() {
     : conversations;
 
   const handleDelete = async (conversation: ConversationListItem) => {
-    if (!confirm("Delete this conversation? This cannot be undone.")) return;
+    if (!confirm(t("conversations.deleteConfirm"))) return;
 
     setDeletingId(conversation.id);
     try {
@@ -135,9 +139,9 @@ export default function ConversationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Conversations</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("conversations.title")}</h1>
         <p className="text-muted-foreground">
-          View and manage customer conversations.
+          {t("conversations.description")}
         </p>
       </div>
 
@@ -147,7 +151,7 @@ export default function ConversationsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="search"
-            placeholder="Search conversations..."
+            placeholder={t("conversations.searchConversations")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-10 w-full rounded-md border bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -158,11 +162,11 @@ export default function ConversationsPage() {
       {/* Conversations List */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Conversations</CardTitle>
+          <CardTitle>{t("conversations.recentConversations")}</CardTitle>
           <CardDescription>
             {isLoading
-              ? "Loading..."
-              : `${filteredConversations.length} conversation(s)`}
+              ? t("common.loading")
+              : t("conversations.count", { count: filteredConversations.length })}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -176,12 +180,12 @@ export default function ConversationsPage() {
                 <MessageSquare className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">
-                {searchQuery ? "No matching conversations" : "No conversations yet"}
+                {searchQuery ? t("conversations.noMatchingConversations") : t("conversations.noConversations")}
               </h3>
               <p className="mt-2 text-center text-sm text-muted-foreground">
                 {searchQuery
-                  ? "Try a different search term"
-                  : "When customers start chatting with your widget, their conversations will appear here."}
+                  ? t("conversations.noResultsHint")
+                  : t("conversations.emptyStateHint")}
               </p>
             </div>
           ) : (
@@ -193,6 +197,7 @@ export default function ConversationsPage() {
                   onDelete={() => handleDelete(conversation)}
                   onOpen={() => handleOpen(conversation)}
                   isDeleting={deletingId === conversation.id}
+                  t={t}
                 />
               ))}
             </div>
