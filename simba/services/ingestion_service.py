@@ -116,8 +116,12 @@ def ingest_document(document_id: str, db: Session) -> None:
         document.chunk_count = len(chunks)
         document.error_message = None
 
+        # Flush to ensure status is updated before counting
+        db.flush()
+
         # Update collection document count
-        document.collection.document_count = (
+        collection = document.collection
+        collection.document_count = (
             db.query(Document)
             .filter(Document.collection_id == document.collection_id)
             .filter(Document.status == "ready")

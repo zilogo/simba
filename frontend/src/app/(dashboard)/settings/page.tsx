@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { useSettings, useUpdateSettings, useDefaultPrompts } from "@/hooks/useSettings";
 import { Save, RotateCcw, Loader2, Check, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 type PromptLanguage = "en" | "zh";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { data: settings, isLoading } = useSettings();
   const { data: defaultPrompts } = useDefaultPrompts();
   const updateSettings = useUpdateSettings();
@@ -49,7 +51,7 @@ export default function SettingsPage() {
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to save settings";
       if (message.includes("401")) {
-        setError("Please log in and select an organization to save settings.");
+        setError(t("settings.loginRequired"));
       } else {
         setError(message);
       }
@@ -76,41 +78,41 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
         <p className="text-muted-foreground">
-          Configure your assistant branding and system prompts.
+          {t("settings.description")}
         </p>
       </div>
 
       {/* Branding Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Branding</CardTitle>
+          <CardTitle>{t("settings.branding")}</CardTitle>
           <CardDescription>
-            Customize the name and description of your assistant.
+            {t("settings.brandingDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="appName">Assistant Name</Label>
+            <Label htmlFor="appName">{t("settings.assistantName")}</Label>
             <Input
               id="appName"
               value={appName}
               onChange={(e) => setAppName(e.target.value)}
-              placeholder="e.g., Simba, HelpBot, Assistant"
+              placeholder={t("settings.assistantNamePlaceholder")}
             />
             <p className="text-xs text-muted-foreground">
-              This name will be shown throughout the UI and in chat responses.
+              {t("settings.assistantNameHint")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="appDescription">Description (optional)</Label>
+            <Label htmlFor="appDescription">{t("settings.descriptionLabel")}</Label>
             <Input
               id="appDescription"
               value={appDescription}
               onChange={(e) => setAppDescription(e.target.value)}
-              placeholder="e.g., AI-powered knowledge assistant"
+              placeholder={t("settings.descriptionPlaceholder")}
             />
           </div>
         </CardContent>
@@ -119,10 +121,9 @@ export default function SettingsPage() {
       {/* System Prompt Section */}
       <Card>
         <CardHeader>
-          <CardTitle>System Prompt</CardTitle>
+          <CardTitle>{t("settings.systemPrompt")}</CardTitle>
           <CardDescription>
-            Configure the system prompt for your assistant. The appropriate language version
-            is automatically selected based on the user&apos;s message.
+            {t("settings.systemPromptDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -137,7 +138,7 @@ export default function SettingsPage() {
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              English
+              {t("settings.english")}
             </button>
             <button
               type="button"
@@ -148,7 +149,7 @@ export default function SettingsPage() {
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              Chinese (中文)
+              {t("settings.chinese")}
             </button>
           </div>
 
@@ -156,7 +157,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>
-                {activeTab === "en" ? "English Prompt" : "Chinese Prompt (中文提示词)"}
+                {activeTab === "en" ? t("settings.englishPrompt") : t("settings.chinesePrompt")}
               </Label>
               <Button
                 variant="ghost"
@@ -165,7 +166,7 @@ export default function SettingsPage() {
                 disabled={!defaultPrompts}
               >
                 <RotateCcw className="h-4 w-4 mr-1" />
-                Reset to Default
+                {t("settings.resetToDefault")}
               </Button>
             </div>
             <Textarea
@@ -179,14 +180,13 @@ export default function SettingsPage() {
               }}
               placeholder={
                 activeTab === "en"
-                  ? "Enter your system prompt in English..."
-                  : "输入中文系统提示词..."
+                  ? t("settings.englishPlaceholder")
+                  : t("settings.chinesePlaceholder")
               }
               className="min-h-[300px] font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Supported variables: <code className="bg-muted px-1 rounded">{"{{app_name}}"}</code>
-              {" - "}will be replaced with your assistant name.
+              {t("settings.variablesHint")}
             </p>
           </div>
         </CardContent>
@@ -210,17 +210,17 @@ export default function SettingsPage() {
           {updateSettings.isPending ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
+              {t("settings.saving")}
             </>
           ) : saved ? (
             <>
               <Check className="h-4 w-4 mr-2" />
-              Saved!
+              {t("settings.saved")}
             </>
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              Save Changes
+              {t("settings.saveChanges")}
             </>
           )}
         </Button>

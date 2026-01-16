@@ -62,7 +62,8 @@
     "conversations": "Conversations",
     "analytics": "Analytics",
     "evals": "Evals",
-    "deploy": "Deploy"
+    "deploy": "Deploy",
+    "settings": "Settings"
   },
   "auth": {
     "welcomeBack": "Welcome back",
@@ -318,5 +319,30 @@
     "searching": "Searching",
     "searchingDocuments": "Searching documents",
     "processing": "Processing"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Configure your assistant branding and system prompts.",
+    "branding": "Branding",
+    "brandingDesc": "Customize the name and description of your assistant.",
+    "assistantName": "Assistant Name",
+    "assistantNamePlaceholder": "e.g., Simba, HelpBot, Assistant",
+    "assistantNameHint": "This name will be shown throughout the UI and in chat responses.",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "e.g., AI-powered knowledge assistant",
+    "systemPrompt": "System Prompt",
+    "systemPromptDesc": "Configure the system prompt for your assistant. The appropriate language version is automatically selected based on the user's message.",
+    "english": "English",
+    "chinese": "Chinese (中文)",
+    "englishPrompt": "English Prompt",
+    "chinesePrompt": "Chinese Prompt (中文提示词)",
+    "resetToDefault": "Reset to Default",
+    "englishPlaceholder": "Enter your system prompt in English...",
+    "chinesePlaceholder": "输入中文系统提示词...",
+    "variablesHint": "Supported variables: {{app_name}} - will be replaced with your assistant name.",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "saved": "Saved!",
+    "loginRequired": "Please log in and select an organization to save settings."
   }
 }

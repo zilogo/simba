@@ -143,8 +143,26 @@ async def upload_document(
     if not collection:
         raise HTTPException(status_code=404, detail="Collection not found")
 
-    # Validate file type
+    # Validate file type - use extension fallback for octet-stream
     mime_type = file.content_type or "application/octet-stream"
+    if mime_type == "application/octet-stream" and file.filename:
+        # Fallback to extension-based MIME type detection
+        ext_mime_map = {
+            ".md": "text/markdown",
+            ".markdown": "text/markdown",
+            ".txt": "text/plain",
+            ".pdf": "application/pdf",
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            ".html": "text/html",
+            ".htm": "text/html",
+            ".adoc": "text/asciidoc",
+            ".asciidoc": "text/asciidoc",
+        }
+        ext = "." + file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+        mime_type = ext_mime_map.get(ext, mime_type)
+
     if not parser_service.is_supported_mime_type(mime_type):
         raise HTTPException(
             status_code=400,

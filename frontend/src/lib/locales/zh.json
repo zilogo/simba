@@ -62,7 +62,8 @@
     "conversations": "对话记录",
     "analytics": "数据分析",
     "evals": "评估报告",
-    "deploy": "部署"
+    "deploy": "部署",
+    "settings": "设置"
   },
   "auth": {
     "welcomeBack": "欢迎回来",
@@ -318,5 +319,30 @@
     "searching": "搜索中",
     "searchingDocuments": "正在搜索文档",
     "processing": "处理中"
+  },
+  "settings": {
+    "title": "设置",
+    "description": "配置助手品牌和系统提示词。",
+    "branding": "品牌设置",
+    "brandingDesc": "自定义助手的名称和描述。",
+    "assistantName": "助手名称",
+    "assistantNamePlaceholder": "例如：Simba、HelpBot、Assistant",
+    "assistantNameHint": "此名称将显示在界面和聊天回复中。",
+    "descriptionLabel": "描述（可选）",
+    "descriptionPlaceholder": "例如：AI 驱动的知识助手",
+    "systemPrompt": "系统提示词",
+    "systemPromptDesc": "配置助手的系统提示词。系统会根据用户消息的语言自动选择对应版本。",
+    "english": "English",
+    "chinese": "中文",
+    "englishPrompt": "英文提示词",
+    "chinesePrompt": "中文提示词",
+    "resetToDefault": "重置为默认",
+    "englishPlaceholder": "输入英文系统提示词...",
+    "chinesePlaceholder": "输入中文系统提示词...",
+    "variablesHint": "支持的变量：{{app_name}} - 将被替换为助手名称。",
+    "saveChanges": "保存更改",
+    "saving": "保存中...",
+    "saved": "已保存！",
+    "loginRequired": "请登录并选择组织以保存设置。"
   }
 }
