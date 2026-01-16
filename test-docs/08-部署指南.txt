@@ -1,0 +1,211 @@
+智云科技系统部署指南
+
+本指南适用于选择私有化部署的企业客户，详细介绍系统部署的完整流程。
+
+========================================
+第一部分：部署前准备
+========================================
+
+一、硬件要求
+
+1. 最低配置（支持100并发用户）
+   - CPU：8核 Intel Xeon 或同等性能
+   - 内存：32GB DDR4
+   - 存储：500GB SSD
+   - 网络：100Mbps 带宽
+
+2. 推荐配置（支持500并发用户）
+   - CPU：16核 Intel Xeon 或同等性能
+   - 内存：64GB DDR4
+   - 存储：1TB SSD（RAID 10）
+   - 网络：1Gbps 带宽
+
+3. 高可用配置（支持1000+并发用户）
+   - 应用服务器：3台以上
+   - 数据库服务器：主从架构
+   - 缓存服务器：Redis集群
+   - 负载均衡器：独立部署
+
+二、软件要求
+
+1. 操作系统
+   - CentOS 7.9 或 8.x（推荐）
+   - Ubuntu 20.04 LTS 或 22.04 LTS
+   - Red Hat Enterprise Linux 7.x 或 8.x
+
+2. 运行环境
+   - Docker 20.10+
+   - Docker Compose 2.0+
+   - 或 Kubernetes 1.20+
+
+3. 数据库
+   - PostgreSQL 14+（推荐）
+   - MySQL 8.0+
+
+4. 缓存
+   - Redis 6.0+
+
+5. 消息队列
+   - RabbitMQ 3.9+
+   - 或 Kafka 3.0+
+
+三、网络要求
+
+1. 端口开放
+   - 80：HTTP服务
+   - 443：HTTPS服务
+   - 5432：PostgreSQL（内网）
+   - 6379：Redis（内网）
+   - 5672：RabbitMQ（内网）
+
+2. 域名准备
+   - 主域名：如 cs.yourcompany.com
+   - API域名：如 api.yourcompany.com
+   - 管理后台：如 admin.yourcompany.com
+
+3. SSL证书
+   - 需要有效的SSL证书
+   - 支持自签名证书（测试环境）
+
+========================================
+第二部分：安装步骤
+========================================
+
+一、环境安装
+
+1. 安装Docker
+   ```bash
+   # CentOS
+   yum install -y docker-ce docker-ce-cli containerd.io
+   systemctl start docker
+   systemctl enable docker
+
+   # Ubuntu
+   apt-get update
+   apt-get install -y docker-ce docker-ce-cli containerd.io
+   ```
+
+2. 安装Docker Compose
+   ```bash
+   curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   chmod +x /usr/local/bin/docker-compose
+   ```
+
+二、获取部署包
+
+1. 联系技术支持获取部署包
+2. 解压到指定目录
+   ```bash
+   tar -xzf zhiyun-deploy-v2.5.0.tar.gz -C /opt/
+   cd /opt/zhiyun
+   ```
+
+三、配置系统
+
+1. 复制配置模板
+   ```bash
+   cp .env.example .env
+   ```
+
+2. 编辑配置文件
+   ```bash
+   vi .env
+   ```
+
+3. 主要配置项
+   - DATABASE_URL：数据库连接
+   - REDIS_URL：Redis连接
+   - SECRET_KEY：加密密钥
+   - DOMAIN：访问域名
+
+四、初始化数据库
+
+```bash
+docker-compose run --rm web python manage.py migrate
+docker-compose run --rm web python manage.py init_data
+```
+
+五、启动服务
+
+```bash
+docker-compose up -d
+```
+
+六、验证部署
+
+1. 检查服务状态
+   ```bash
+   docker-compose ps
+   ```
+
+2. 访问系统
+   - 打开浏览器访问配置的域名
+   - 使用初始管理员账号登录
+
+========================================
+第三部分：运维管理
+========================================
+
+一、日常维护
+
+1. 查看日志
+   ```bash
+   docker-compose logs -f web
+   docker-compose logs -f worker
+   ```
+
+2. 重启服务
+   ```bash
+   docker-compose restart web
+   docker-compose restart worker
+   ```
+
+3. 更新版本
+   ```bash
+   docker-compose pull
+   docker-compose up -d
+   ```
+
+二、备份恢复
+
+1. 数据库备份
+   ```bash
+   docker-compose exec db pg_dump -U postgres zhiyun > backup.sql
+   ```
+
+2. 数据库恢复
+   ```bash
+   docker-compose exec -T db psql -U postgres zhiyun < backup.sql
+   ```
+
+三、监控告警
+
+1. 健康检查接口
+   - /api/health：系统健康状态
+   - /api/metrics：性能指标
+
+2. 推荐监控工具
+   - Prometheus + Grafana
+   - Zabbix
+   - 云厂商监控服务
+
+四、故障排查
+
+1. 服务无法启动
+   - 检查端口占用
+   - 检查配置文件
+   - 查看错误日志
+
+2. 数据库连接失败
+   - 检查数据库服务状态
+   - 验证连接信息
+   - 检查网络连通性
+
+3. 性能问题
+   - 检查服务器资源使用
+   - 分析慢查询日志
+   - 考虑扩容或优化
+
+如需技术支持，请联系：
+电话：400-888-9999 转 2
+邮箱：deploy@zhiyuntech.com

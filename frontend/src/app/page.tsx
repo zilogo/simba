@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import { useBrand } from "@/providers/brand-provider";
 
 export default function Home() {
   const { t } = useTranslation();
+  const { appName, appDescription } = useBrand();
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted">
@@ -12,12 +14,12 @@ export default function Home() {
         <h1 className="text-center text-5xl font-bold tracking-tight sm:text-6xl">
           {t("home.welcome")}{" "}
           <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-            Simba
+            {appName}
           </span>
         </h1>
 
         <p className="max-w-2xl text-center text-lg text-muted-foreground">
-          {t("home.description")}
+          {appDescription || t("home.description")}
         </p>
 
         <div className="flex gap-4">

@@ -1,0 +1,21 @@
+# Simba FAQ - 常见问题
+
+## 什么是 Simba？
+Simba 是一个开源的客户服务助手，具有 RAG（检索增强生成）功能。它可以从知识库中检索相关信息来回答用户问题。
+
+## Simba 的主要功能有哪些？
+1. 文档管理 - 上传和管理知识库文档
+2. 智能问答 - 基于知识库的智能对话
+3. 多格式支持 - 支持 PDF、DOCX、TXT、MD 等格式
+4. 实时分析 - 提供对话分析和评估功能
+
+## 如何使用 Simba？
+1. 首先创建一个集合（Collection）
+2. 上传相关文档到集合中
+3. 在 Playground 中选择集合并开始对话
+
+## 技术栈
+- 后端: Python FastAPI + LangChain
+- 前端: Next.js 15 + React 19
+- 向量数据库: Qdrant
+- 存储: MinIO

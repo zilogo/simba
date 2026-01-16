@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useBrand } from "@/providers/brand-provider";
 
 export default function SignupPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { appName } = useBrand();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +65,7 @@ export default function SignupPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">{t("auth.createAccount")}</CardTitle>
-        <CardDescription>{t("auth.signUpDescription")}</CardDescription>
+        <CardDescription>{t("auth.signUpDescription", { appName })}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

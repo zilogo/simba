@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
+import { APP_NAME, APP_DESCRIPTION } from "@/lib/constants";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -9,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Simba - Customer Service Assistant",
-  description: "AI-powered customer service assistant that answers questions fast and accurately",
+  title: `${APP_NAME} - AI Assistant`,
+  description: APP_DESCRIPTION,
 };
 
 export default function RootLayout({

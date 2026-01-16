@@ -16,9 +16,12 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from psycopg_pool import AsyncConnectionPool
+from sqlalchemy.orm import Session
 
 from simba.core.config import settings
 from simba.services import retrieval_service
+from simba.services.prompt_service import detect_language, load_default_prompt, render_prompt
+from simba.services.settings_service import SettingsService
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,8 @@ _connection_pool: AsyncConnectionPool | None = None
 _checkpointer: BaseCheckpointSaver | None = None
 _pool_initialized: bool = False
 
-SYSTEM_PROMPT = """You are Simba, a customer service assistant.
+# Default system prompt (kept for backward compatibility)
+DEFAULT_SYSTEM_PROMPT = """You are Simba, a customer service assistant.
 
 ## Tone
 - Warm but professional
@@ -57,6 +61,55 @@ Use the rag tool to search for information. Before saying info doesn't exist:
 - End with "Is there anything else I can help with?"
 - Say "I don't have information" without offering an alternative path
 """
+
+
+def get_system_prompt(
+    organization_id: str | None,
+    user_message: str,
+    db: Session | None,
+) -> str:
+    """Get the appropriate system prompt for the organization and language.
+
+    Args:
+        organization_id: The organization ID. If None, uses default prompt.
+        user_message: The user's message (for language detection).
+        db: SQLAlchemy database session. If None, uses default prompt.
+
+    Returns:
+        The rendered system prompt.
+    """
+    # If no org or db, use default prompt
+    if not organization_id or not db:
+        logger.debug("[Chat] Using default system prompt (no org/db)")
+        return DEFAULT_SYSTEM_PROMPT
+
+    # Get organization settings
+    settings_service = SettingsService(db)
+    org_settings = settings_service.get_settings(organization_id)
+
+    # Detect user language
+    language = detect_language(user_message)
+    logger.debug(f"[Chat] Detected language: {language}")
+
+    # Get prompt based on language and settings
+    if language == "zh" and org_settings.system_prompt_zh:
+        prompt_template = org_settings.system_prompt_zh
+        logger.debug("[Chat] Using custom Chinese prompt")
+    elif org_settings.system_prompt_en:
+        prompt_template = org_settings.system_prompt_en
+        logger.debug("[Chat] Using custom English prompt")
+    else:
+        # Use default template for the detected language
+        prompt_template = load_default_prompt(language)
+        logger.debug(f"[Chat] Using default {language} prompt template")
+
+    # Render variables
+    variables = {
+        "app_name": org_settings.app_name,
+        "language": language,
+    }
+
+    return render_prompt(prompt_template, variables)
 
 
 def create_rag_tool(collection_name: str):
@@ -213,39 +266,63 @@ async def shutdown_checkpointer() -> None:
     _pool_initialized = False
 
 
-async def get_agent(collection: str | None = None):
-    """Create agent with the specified collection.
+async def get_agent(
+    collection: str | None = None,
+    organization_id: str | None = None,
+    user_message: str = "",
+    db: Session | None = None,
+):
+    """Create agent with the specified collection and organization settings.
 
     Args:
         collection: Collection name for RAG searches. Defaults to "default".
+        organization_id: Organization ID for custom settings.
+        user_message: User's message for language detection.
+        db: Database session for fetching settings.
     """
     collection_name = collection or "default"
     llm = get_llm()
     rag_tool = create_rag_tool(collection_name)
     checkpointer = await get_checkpointer()
 
+    # Get system prompt (custom or default)
+    system_prompt = get_system_prompt(organization_id, user_message, db)
+
     agent = create_agent(
         model=llm,
         tools=[rag_tool],
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=system_prompt,
         checkpointer=checkpointer,
     )
 
     return agent
 
 
-async def chat(message: str, thread_id: str, collection: str | None = None) -> str:
+async def chat(
+    message: str,
+    thread_id: str,
+    collection: str | None = None,
+    organization_id: str | None = None,
+    db: Session | None = None,
+) -> str:
     """Process a chat message and return the response.
 
     Args:
         message: The user's message.
         thread_id: Thread ID for conversation isolation.
         collection: Collection name for RAG searches.
+        organization_id: Organization ID for custom settings.
+        db: Database session for fetching settings.
 
     Returns:
         The agent's response.
     """
-    agent = await get_agent(collection)
+    agent = await get_agent(
+        collection=collection,
+        organization_id=organization_id,
+        user_message=message,
+        db=db,
+    )
 
     config = {"configurable": {"thread_id": thread_id}}
 
@@ -263,7 +340,11 @@ async def chat(message: str, thread_id: str, collection: str | None = None) -> s
 
 
 async def chat_stream(
-    message: str, thread_id: str, collection: str | None = None
+    message: str,
+    thread_id: str,
+    collection: str | None = None,
+    organization_id: str | None = None,
+    db: Session | None = None,
 ) -> AsyncGenerator[str, None]:
     """Stream chat responses using SSE format with all event types.
 
@@ -271,6 +352,8 @@ async def chat_stream(
         message: The user's message.
         thread_id: Thread ID for conversation isolation.
         collection: Collection name for RAG searches.
+        organization_id: Organization ID for custom settings.
+        db: Database session for fetching settings.
 
     Yields:
         SSE-formatted events including:
@@ -280,7 +363,12 @@ async def chat_stream(
         - type: "content" - AI response text chunks
         - type: "done" - Stream complete (includes response latency)
     """
-    agent = await get_agent(collection)
+    agent = await get_agent(
+        collection=collection,
+        organization_id=organization_id,
+        user_message=message,
+        db=db,
+    )
     config = {"configurable": {"thread_id": thread_id}}
 
     # Track tool start times for latency calculation

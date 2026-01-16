@@ -12,6 +12,7 @@ export const ROUTES = {
   ANALYTICS: "/analytics",
   EVALS: "/evals",
   DEPLOY: "/deploy",
+  SETTINGS: "/settings",
 } as const;
 
 export const API_ROUTES = {
@@ -23,4 +24,5 @@ export const API_ROUTES = {
   HEALTH: "/api/v1/health",
   ANALYTICS: "/api/v1/analytics",
   EVALS: "/api/v1/evals",
+  SETTINGS: "/api/v1/settings",
 } as const;

@@ -244,3 +244,30 @@ export interface GeneratedQuestion {
 export interface GenerateQuestionsResponse {
   questions: GeneratedQuestion[];
 }
+
+// Settings Types
+export interface OrganizationSettings {
+  organization_id: string;
+  app_name: string;
+  app_description: string | null;
+  system_prompt_en: string | null;
+  system_prompt_zh: string | null;
+  retrieval_limit: number | null;
+  retrieval_min_score: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SettingsUpdate {
+  app_name?: string;
+  app_description?: string | null;
+  system_prompt_en?: string | null;
+  system_prompt_zh?: string | null;
+  retrieval_limit?: number | null;
+  retrieval_min_score?: number | null;
+}
+
+export interface DefaultPrompts {
+  en: string;
+  zh: string;
+}

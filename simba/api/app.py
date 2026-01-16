@@ -17,6 +17,9 @@ from simba.api.routes import (
     metrics,
     organizations,
 )
+from simba.api.routes import (
+    settings as settings_routes,
+)
 from simba.core.config import settings
 from simba.models import init_db
 from simba.services.chat_service import shutdown_checkpointer
@@ -77,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(conversations.router, prefix=settings.api_prefix, tags=["conversations"])
     app.include_router(analytics.router, prefix=settings.api_prefix, tags=["analytics"])
     app.include_router(evals.router, prefix=settings.api_prefix, tags=["evals"])
+    app.include_router(settings_routes.router, prefix=settings.api_prefix, tags=["settings"])
 
     # Global exception handler to ensure CORS headers on error responses
     @app.exception_handler(Exception)

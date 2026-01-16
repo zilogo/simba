@@ -8,6 +8,7 @@ import { ChatSources } from "./chat-sources";
 import { ChatStatus } from "./chat-status";
 import { ChatLatency } from "./chat-latency";
 import { ChatContext } from "./chat-context";
+import { useBrand } from "@/providers/brand-provider";
 import type { ChatMessage as ChatMessageType } from "@/hooks";
 
 interface ChatMessageProps {
@@ -29,6 +30,7 @@ export function ChatMessage({
   onSourcesOpen,
   isSourcesOpen,
 }: ChatMessageProps) {
+  const { appName } = useBrand();
   const isUser = message.role === "user";
   const hasRunningTool = message.tools?.some((t) => t.status === "running");
   const showStatus = isStreaming && hasRunningTool;
@@ -73,7 +75,7 @@ export function ChatMessage({
           )}
         >
           <span className="font-medium text-foreground">
-            {isUser ? "You" : "Simba"}
+            {isUser ? "You" : appName}
           </span>
           <span>{formatTime(message.createdAt)}</span>
           {/* Latency indicator for assistant messages */}

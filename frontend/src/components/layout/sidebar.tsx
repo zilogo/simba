@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
+import { useBrand } from "@/providers/brand-provider";
 import {
   LayoutDashboard,
   FileText,
@@ -14,6 +15,7 @@ import {
   Rocket,
   HelpCircle,
   Play,
+  Settings,
 } from "lucide-react";
 
 const navigation = [
@@ -24,20 +26,22 @@ const navigation = [
   { key: "analytics", href: ROUTES.ANALYTICS, icon: BarChart3 },
   { key: "evals", href: ROUTES.EVALS, icon: ClipboardCheck },
   { key: "deploy", href: ROUTES.DEPLOY, icon: Rocket },
+  { key: "settings", href: ROUTES.SETTINGS, icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const { appName } = useBrand();
 
   return (
     <aside className="flex w-64 flex-col border-r bg-card">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 border-b px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <span className="text-lg font-bold">S</span>
+          <span className="text-lg font-bold">{appName.charAt(0).toUpperCase()}</span>
         </div>
-        <span className="text-xl font-semibold">Simba</span>
+        <span className="text-xl font-semibold">{appName}</span>
       </div>
 
       {/* Navigation */}

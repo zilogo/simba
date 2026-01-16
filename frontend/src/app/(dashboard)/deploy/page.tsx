@@ -9,6 +9,7 @@ import { API_URL } from "@/lib/constants";
 import { Copy, Check, Sparkles, MessageSquare, MessageCircle, ChevronDown } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useCollections } from "@/hooks/useCollections";
+import { useBrand } from "@/providers/brand-provider";
 
 const getInlineChatExample = (orgId: string, collection: string) => `// components/inline-chat.tsx
 "use client";
@@ -91,6 +92,7 @@ export default function DeployPage() {
   const [selectedCollection, setSelectedCollection] = useState<string>("default");
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
 
+  const { appName } = useBrand();
   const { activeOrganization } = useAuth();
   const { data: collectionsData, isLoading: isLoadingCollections } = useCollections();
 
@@ -108,7 +110,7 @@ export default function DeployPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t("deploy.title")}</h1>
         <p className="text-muted-foreground">
-          {t("deploy.descriptionAlt")}
+          {t("deploy.descriptionAlt", { appName })}
         </p>
       </div>
 
