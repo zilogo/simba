@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
+from simba.core.config import settings
 from simba.models import Document
 from simba.services import (
     chunker_service,
@@ -63,7 +64,11 @@ def ingest_document(document_id: str, db: Session) -> None:
 
         # Step 3: Chunk text
         logger.info(f"Chunking text ({len(text)} characters)")
-        chunks = chunker_service.chunk_text(text)
+        chunks = chunker_service.chunk_text(
+            text,
+            chunk_size=settings.chunk_size,
+            chunk_overlap=settings.chunk_overlap,
+        )
         logger.info(f"Created {len(chunks)} chunks")
 
         # Step 4: Generate embeddings (dense + sparse)

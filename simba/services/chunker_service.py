@@ -1,8 +1,43 @@
-"""Text chunking service using LangChain."""
+"""Text chunking service with Chinese language support."""
 
+import re
 from dataclasses import dataclass
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# Default separators for pure English/Latin text
+DEFAULT_SEPARATORS = ["\n\n", "\n", ". ", " ", ""]
+
+# Mixed Chinese-English separators (handles both languages properly)
+# Order matters: longer/stronger separators first
+MIXED_SEPARATORS = [
+    "\n\n",
+    "\n",
+    # Chinese sentence-ending punctuation
+    "。",  # Chinese period
+    "！",  # Chinese exclamation mark
+    "？",  # Chinese question mark
+    # English sentence-ending punctuation
+    ". ",
+    "! ",
+    "? ",
+    # Chinese clause-level punctuation
+    "；",  # Chinese semicolon
+    "：",  # Chinese colon
+    # English clause-level punctuation
+    "; ",
+    ": ",
+    # Commas (weaker breaks)
+    "，",  # Chinese comma
+    "、",  # Chinese enumeration comma
+    ", ",  # English comma
+    # Fallback
+    " ",
+    "",
+]
+
+# Regex pattern to detect Chinese characters
+CHINESE_CHAR_PATTERN = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf]")
 
 
 @dataclass
@@ -15,12 +50,45 @@ class Chunk:
     end_char: int  # Ending character position
 
 
+def contains_chinese(text: str) -> bool:
+    """Check if text contains Chinese characters.
+
+    Args:
+        text: Text to check.
+
+    Returns:
+        True if text contains Chinese characters.
+    """
+    return bool(CHINESE_CHAR_PATTERN.search(text))
+
+
+def get_separators(text: str) -> list[str]:
+    """Get appropriate separators based on text content.
+
+    For mixed Chinese-English content, returns separators that handle
+    both languages properly.
+
+    Args:
+        text: Text to analyze.
+
+    Returns:
+        List of separators appropriate for the text.
+    """
+    if contains_chinese(text):
+        # Use mixed separators for any text containing Chinese
+        # This handles pure Chinese and mixed Chinese-English content
+        return MIXED_SEPARATORS
+    return DEFAULT_SEPARATORS
+
+
 def chunk_text(
     text: str,
     chunk_size: int = 1000,
     chunk_overlap: int = 200,
 ) -> list[Chunk]:
     """Split text into chunks with overlap.
+
+    Automatically detects Chinese text and uses appropriate separators.
 
     Args:
         text: The text to split.
@@ -30,11 +98,13 @@ def chunk_text(
     Returns:
         List of Chunk objects with content and metadata.
     """
+    separators = get_separators(text)
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
         length_function=len,
-        separators=["\n\n", "\n", ". ", " ", ""],
+        separators=separators,
     )
 
     # Use create_documents to get metadata about positions
@@ -76,6 +146,8 @@ def chunk_text_simple(
 ) -> list[str]:
     """Split text into chunks (simple version returning just strings).
 
+    Automatically detects Chinese text and uses appropriate separators.
+
     Args:
         text: The text to split.
         chunk_size: Maximum size of each chunk in characters.
@@ -84,11 +156,13 @@ def chunk_text_simple(
     Returns:
         List of chunk strings.
     """
+    separators = get_separators(text)
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
         length_function=len,
-        separators=["\n\n", "\n", ". ", " ", ""],
+        separators=separators,
     )
 
     return splitter.split_text(text)

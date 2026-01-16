@@ -48,6 +48,10 @@ dependencies = [
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
     "python-dotenv>=1.0.1",
+    "httpx>=0.28.0",  # For API-based embedding/reranker backends
+    # Chinese text processing
+    "jieba>=0.42.1",
+    "rank-bm25>=0.2.2",  # For BM25 hybrid search
     # Observability
     "prometheus_client>=0.21.0",
     "cachetools>=5.5.0",

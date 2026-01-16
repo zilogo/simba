@@ -44,22 +44,32 @@ class Settings(BaseSettings):
     # Anthropic thinking budget (only used when provider is anthropic and reasoning is enabled)
     llm_thinking_budget: int = 10000
 
-    # Embedding (FastEmbed - local, free, fast)
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    # Embedding configuration
+    # Format: "provider:model" e.g. "local:BAAI/bge-m3", "api:BAAI/bge-m3"
+    # Providers: "local" (FastEmbed), "api" (OpenAI-compatible API like sglang/vLLM)
+    embedding_provider: str = "local:sentence-transformers/all-MiniLM-L6-v2"
+    embedding_base_url: str | None = None  # API base URL for sglang/vLLM
+    embedding_api_key: str | None = None  # API key (optional)
     embedding_dimensions: int = 384
+
+    # Reranker configuration
+    # Format: "provider:model" e.g. "local:BAAI/bge-reranker-v2-m3", "api:BAAI/bge-reranker-v2-m3"
+    # Providers: "local" (sentence-transformers), "api" (OpenAI-compatible API)
+    reranker_provider: str = "local:cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_base_url: str | None = None  # API base URL for vLLM
+    reranker_api_key: str | None = None  # API key (optional)
+    reranker_top_k: int = 5
+
+    # Chunking settings
+    chunk_size: int = 400  # Max characters per chunk (400 for BGE models with 512 token limit)
+    chunk_overlap: int = 50  # Overlap between chunks
 
     # Retrieval settings
     retrieval_min_score: float = 0.3  # Low threshold for multilingual queries
     retrieval_limit: int = 8
     retrieval_rerank: bool = True
-    retrieval_hybrid: bool = (
-        False  # Disabled: SPLADE model is English-only, corrupts French queries
-    )
-    retrieval_sparse_model: str = "prithvida/Splade_PP_en_v1"
-
-    # Reranker settings
-    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    reranker_top_k: int = 5
+    retrieval_hybrid: bool = False  # Enable hybrid search (dense + sparse/BM25)
+    retrieval_sparse_model: str = "prithvida/Splade_PP_en_v1"  # For SPLADE sparse embeddings
 
     # Qdrant
     qdrant_host: str = "localhost"

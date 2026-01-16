@@ -34,11 +34,10 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup
     logger.info(
-        "Startup config: llm_model=%s embedding_model=%s reranker_model=%s sparse_model=%s parser_backend=%s",
+        "Startup config: llm_model=%s embedding_provider=%s reranker_provider=%s parser_backend=%s",
         settings.llm_model,
-        settings.embedding_model,
-        settings.reranker_model,
-        settings.retrieval_sparse_model,
+        settings.embedding_provider,
+        settings.reranker_provider,
         settings.parser_backend,
     )
     init_db()
